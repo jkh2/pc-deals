@@ -61,7 +61,7 @@
     }
     #bootNerd img {
       width: 120px; height: 111px; object-fit: cover; object-position: top;
-      filter: drop-shadow(0 0 16px rgba(0,255,65,0.5));
+      filter: drop-shadow(0 0 4px rgba(0,255,65,0.2));
       animation: nerdBob 2s ease-in-out infinite;
       position: relative; z-index: 1;
     }
@@ -93,7 +93,7 @@
     }
     .logo-nerd {
       width: 52px; height: 48px; object-fit: cover; object-position: top center;
-      filter: drop-shadow(0 0 6px rgba(0,255,65,0.4));
+      filter: drop-shadow(0 0 3px rgba(0,255,65,0.2));
       animation: nerdBob 3s ease-in-out infinite;
       flex-shrink: 0;
     }
@@ -237,7 +237,6 @@
     .nerd-img {
       width: 80px; height: 74px; object-fit: cover; object-position: top;
       flex-shrink: 0; image-rendering: auto;
-      filter: drop-shadow(0 0 6px rgba(0,255,65,0.3));
       animation: nerdBob 1.5s ease-in-out infinite;
     }
     @keyframes nerdBob {
@@ -717,7 +716,7 @@ async function generateAISummary() {
   bar.style.display = 'block';
   txt.className = 'loading';
   txt.innerHTML = `<span style="display:inline-flex;align-items:center;gap:8px">
-    <img src="nerd.png" alt="" style="width:28px;height:26px;object-fit:cover;object-position:top;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(0,255,65,0.4));animation:nerdBob 1.5s ease-in-out infinite">
+    <img src="nerd.png" alt="" style="width:28px;height:26px;object-fit:cover;object-position:top;vertical-align:middle;animation:nerdBob 1.5s ease-in-out infinite">
     &gt; Scanning deals...<span class="nerd-cursor"></span>
   </span>`;
 
