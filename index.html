@@ -55,6 +55,24 @@
     .boot-line.visible { opacity: 1; }
     #bootProgress { width: 100%; max-width: 580px; margin-top: 20px; height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden; pointer-events: none; }
     #bootBar { height: 100%; width: 0%; background: var(--glow); box-shadow: 0 0 10px var(--glow); transition: width 0.25s ease; }
+    #bootNerd {
+      position: relative; margin-bottom: 16px;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    #bootNerd img {
+      width: 120px; height: 111px; object-fit: cover; object-position: top;
+      filter: drop-shadow(0 0 16px rgba(0,255,65,0.5));
+      animation: nerdBob 2s ease-in-out infinite;
+      position: relative; z-index: 1;
+    }
+    #bootNerd::after {
+      content: '';
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 130px; height: 60px;
+      background: radial-gradient(ellipse at center bottom, rgba(0,255,65,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      z-index: 0;
+    }
     #bootSkip { margin-top: 16px; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; pointer-events: none; animation: fadeIn 1s ease 0.5s both; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -69,7 +87,17 @@
       display: flex; align-items: center; justify-content: space-between;
       height: 60px; gap: 16px;
     }
-    .logo { display: flex; flex-direction: column; line-height: 1; flex-shrink: 0; }
+    .logo {
+      display: flex; flex-direction: row; align-items: center;
+      gap: 10px; line-height: 1; flex-shrink: 0;
+    }
+    .logo-nerd {
+      width: 52px; height: 48px; object-fit: cover; object-position: top center;
+      filter: drop-shadow(0 0 6px rgba(0,255,65,0.4));
+      animation: nerdBob 3s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .logo-text { display: flex; flex-direction: column; }
     .logo-main {
       font-family: var(--title); font-size: 18px; font-weight: 900;
       letter-spacing: 3px; color: var(--glow);
@@ -204,6 +232,7 @@
     .nerd-thinking {
       display: flex; align-items: flex-end; gap: 12px;
       padding: 12px 0 4px;
+      background: var(--card);
     }
     .nerd-img {
       width: 80px; height: 74px; object-fit: cover; object-position: top;
@@ -359,6 +388,9 @@
 <body>
 
 <div id="bootScreen">
+  <div id="bootNerd">
+    <img src="nerd.png" alt="PC Deals Nerd">
+  </div>
   <pre>
 ██████╗  ██████╗    ██████╗ ███████╗ █████╗ ██╗
 ██╔══██╗██╔════╝    ██╔══██╗██╔════╝██╔══██╗██║
@@ -377,8 +409,11 @@
 <header>
   <div class="header-inner">
     <div class="logo">
-      <div class="logo-main">PC<span>DEALS</span></div>
-      <div class="logo-sub">// NERD MODE + AI + WEB SEARCH //</div>
+      <img class="logo-nerd" src="nerd.png" alt="PC Deals Nerd">
+      <div class="logo-text">
+        <div class="logo-main">PC<span>DEALS</span></div>
+        <div class="logo-sub">// NERD MODE + AI + WEB SEARCH //</div>
+      </div>
     </div>
     <div class="search-wrap">
       <span class="search-prefix">&gt;_</span>
@@ -682,7 +717,7 @@ async function generateAISummary() {
   bar.style.display = 'block';
   txt.className = 'loading';
   txt.innerHTML = `<span style="display:inline-flex;align-items:center;gap:8px">
-    <img src="nerd.jpg" alt="" style="width:28px;height:26px;object-fit:cover;object-position:top;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(0,255,65,0.4));animation:nerdBob 1.5s ease-in-out infinite">
+    <img src="nerd.png" alt="" style="width:28px;height:26px;object-fit:cover;object-position:top;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(0,255,65,0.4));animation:nerdBob 1.5s ease-in-out infinite">
     &gt; Scanning deals...<span class="nerd-cursor"></span>
   </span>`;
 
@@ -716,8 +751,8 @@ async function analyzeDeal(dealId, btn) {
   const resultEl = document.getElementById('ai-result-' + CSS.escape(dealId));
   resultEl.className = 'card-ai-result loading';
   resultEl.innerHTML = `
-    <div class="nerd-thinking" style="padding:8px 0 0">
-      <img class="nerd-img" src="nerd.jpg" alt="thinking" style="width:52px;height:48px">
+    <div class="nerd-thinking" style="padding:8px 0 0;background:var(--card)">
+      <img class="nerd-img" src="nerd.png" alt="thinking" style="width:52px;height:48px">
       <div class="nerd-bubble" style="min-height:36px">
         <div class="nerd-bubble-label">🤖 ANALYZING //</div>
         <div class="nerd-bubble-text">&gt; Reading the deal...<span class="nerd-cursor"></span></div>
@@ -778,7 +813,7 @@ async function runBuildAdvisor() {
   resultEl.innerHTML = `
     <div class="advisor-searching" id="searchingState">
       <div class="nerd-thinking">
-        <img class="nerd-img" src="nerd.jpg" alt="AI thinking">
+        <img class="nerd-img" src="nerd.png" alt="AI thinking">
         <div class="nerd-bubble">
           <div class="nerd-bubble-label">🤖 AI BUILD ADVISOR //</div>
           <div class="nerd-bubble-text" id="nerdSpeech">&gt; ${statusSteps[0]}<span class="nerd-cursor"></span></div>
