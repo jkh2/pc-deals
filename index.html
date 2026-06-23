@@ -200,8 +200,50 @@
     }
     #advisorResult.done { display: block; color: var(--glow); }
 
-    /* Web search loading state — cycling status lines */
-    .advisor-searching { display: block; padding-top: 12px; border-top: 1px solid var(--border); }
+    /* ── NERD MASCOT ── */
+    .nerd-thinking {
+      display: flex; align-items: flex-end; gap: 12px;
+      padding: 12px 0 4px;
+    }
+    .nerd-img {
+      width: 80px; height: 74px; object-fit: cover; object-position: top;
+      flex-shrink: 0; image-rendering: auto;
+      filter: drop-shadow(0 0 6px rgba(0,255,65,0.3));
+      animation: nerdBob 1.5s ease-in-out infinite;
+    }
+    @keyframes nerdBob {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-4px); }
+    }
+    .nerd-bubble {
+      background: var(--card); border: 1px solid var(--glow);
+      padding: 10px 14px; position: relative; flex: 1;
+      box-shadow: 0 0 12px rgba(0,255,65,0.15);
+      min-height: 54px; display: flex; flex-direction: column; justify-content: center;
+    }
+    .nerd-bubble::before {
+      content: ''; position: absolute; left: -8px; bottom: 18px;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-right: 8px solid var(--glow);
+    }
+    .nerd-bubble::after {
+      content: ''; position: absolute; left: -6px; bottom: 19px;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-right: 7px solid var(--card);
+    }
+    .nerd-bubble-label {
+      font-size: 9px; color: var(--purple); letter-spacing: 0.12em; margin-bottom: 4px;
+    }
+    .nerd-bubble-text {
+      font-size: 12px; color: var(--glow); line-height: 1.5;
+    }
+    .nerd-cursor {
+      display: inline-block; width: 8px; height: 12px;
+      background: var(--glow); margin-left: 2px; vertical-align: middle;
+      animation: blink 0.8s step-end infinite;
+    }
     .search-status-line {
       font-size: 12px; color: var(--muted); margin: 4px 0;
       opacity: 0; transition: opacity 0.4s ease;
@@ -639,7 +681,10 @@ async function generateAISummary() {
   const txt = document.getElementById('aiSummaryText');
   bar.style.display = 'block';
   txt.className = 'loading';
-  txt.textContent = '> Scanning deals...';
+  txt.innerHTML = `<span style="display:inline-flex;align-items:center;gap:8px">
+    <img src="nerd.jpg" alt="" style="width:28px;height:26px;object-fit:cover;object-position:top;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(0,255,65,0.4));animation:nerdBob 1.5s ease-in-out infinite">
+    &gt; Scanning deals...<span class="nerd-cursor"></span>
+  </span>`;
 
   // Build a compact deal list for the prompt (top 30 by recency)
   const top = allDeals.slice(0, 30);
@@ -670,7 +715,14 @@ async function analyzeDeal(dealId, btn) {
 
   const resultEl = document.getElementById('ai-result-' + CSS.escape(dealId));
   resultEl.className = 'card-ai-result loading';
-  resultEl.innerHTML = '<div class="ai-result-label">🤖 AI ANALYSIS //</div>> Analyzing deal...';
+  resultEl.innerHTML = `
+    <div class="nerd-thinking" style="padding:8px 0 0">
+      <img class="nerd-img" src="nerd.jpg" alt="thinking" style="width:52px;height:48px">
+      <div class="nerd-bubble" style="min-height:36px">
+        <div class="nerd-bubble-label">🤖 ANALYZING //</div>
+        <div class="nerd-bubble-text">&gt; Reading the deal...<span class="nerd-cursor"></span></div>
+      </div>
+    </div>`;
 
   const prompt = `You are a PC hardware expert helping a young gamer find good deals. Analyze this deal:\n\n"${deal.title}"${deal.price ? '\nPrice: $' + deal.price : ''}\n\nIn 3-4 sentences: explain what this product is in plain English, whether the price is good, any gotchas to watch out for (like mail-in rebates, open box, or limited time), and a simple verdict: BUY, WAIT, or SKIP. Be direct and helpful.`;
 
@@ -725,25 +777,29 @@ async function runBuildAdvisor() {
   resultEl.style.display = 'block';
   resultEl.innerHTML = `
     <div class="advisor-searching" id="searchingState">
-      ${statusSteps.map((s,i) => `<div class="search-status-line" id="sstep-${i}">${s}</div>`).join('')}
+      <div class="nerd-thinking">
+        <img class="nerd-img" src="nerd.jpg" alt="AI thinking">
+        <div class="nerd-bubble">
+          <div class="nerd-bubble-label">🤖 AI BUILD ADVISOR //</div>
+          <div class="nerd-bubble-text" id="nerdSpeech">&gt; ${statusSteps[0]}<span class="nerd-cursor"></span></div>
+        </div>
+      </div>
       <div class="search-progress"><div class="search-progress-bar" id="searchBar"></div></div>
     </div>`;
 
-  // Animate the status lines while the API call runs
+  // Animate the nerd speech bubble while the API call runs
   let stepIndex = 0;
   const bar = document.getElementById('searchBar');
   const stepInterval = setInterval(() => {
-    // Mark previous as done
-    if (stepIndex > 0) {
-      const prev = document.getElementById(`sstep-${stepIndex - 1}`);
-      if (prev) { prev.classList.remove('active'); prev.classList.add('done-line'); }
-    }
-    const curr = document.getElementById(`sstep-${stepIndex}`);
-    if (curr) curr.classList.add('active');
-    if (bar) bar.style.width = ((stepIndex + 1) / statusSteps.length * 85) + '%';
     stepIndex++;
-    if (stepIndex >= statusSteps.length) clearInterval(stepInterval);
-  }, 2000);
+    if (stepIndex < statusSteps.length) {
+      const speech = document.getElementById('nerdSpeech');
+      if (speech) speech.innerHTML = `&gt; ${statusSteps[stepIndex]}<span class="nerd-cursor"></span>`;
+      if (bar) bar.style.width = ((stepIndex + 1) / statusSteps.length * 85) + '%';
+    } else {
+      clearInterval(stepInterval);
+    }
+  }, 2200);
 
   // Build prompt — include our live feed AND instruct web search
   const dealList = allDeals.slice(0, 30).map((d,i) =>
