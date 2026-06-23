@@ -39,27 +39,31 @@
       pointer-events: none; z-index: 9999;
     }
 
-    /* BOOT */
+    /* ── BOOT ── */
     #bootScreen {
       position: fixed; inset: 0; background: var(--bg);
       z-index: 8000; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       font-family: var(--font); color: var(--glow); padding: 40px;
+      cursor: pointer;
     }
     #bootScreen pre {
       font-size: clamp(7px, 1.4vw, 13px); line-height: 1.2;
       color: var(--glow); text-shadow: 0 0 8px var(--glow);
       margin-bottom: 24px; text-align: center;
+      pointer-events: none;
     }
-    .boot-log { width: 100%; max-width: 580px; text-align: left; }
+    .boot-log { width: 100%; max-width: 580px; text-align: left; pointer-events: none; }
     .boot-line { opacity: 0; margin: 3px 0; font-size: 13px; }
     .boot-line.ok::after   { content: ' [OK]';   color: var(--glow2); }
     .boot-line.warn::after { content: ' [WARN]'; color: var(--amber); }
     .boot-line.visible { opacity: 1; }
-    #bootProgress { width: 100%; max-width: 580px; margin-top: 20px; height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden; }
+    #bootProgress { width: 100%; max-width: 580px; margin-top: 20px; height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden; pointer-events: none; }
     #bootBar { height: 100%; width: 0%; background: var(--glow); box-shadow: 0 0 10px var(--glow); transition: width 0.25s ease; }
+    #bootSkip { margin-top: 16px; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; pointer-events: none; animation: fadeIn 1s ease 0.5s both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* HEADER */
+    /* ── HEADER ── */
     header {
       background: var(--surface); border-bottom: 2px solid var(--border);
       padding: 0 20px; position: sticky; top: 0; z-index: 100;
@@ -94,19 +98,33 @@
       background: var(--glow2); box-shadow: 0 0 6px var(--glow2);
       animation: blink 1.2s step-end infinite; margin-right: 4px;
     }
+    /* Refresh fail indicator */
+    .refresh-fail {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--surface); border: 1px solid var(--red);
+      color: var(--red); font-family: var(--font); font-size: 12px;
+      padding: 8px 14px; z-index: 500;
+      animation: fadeIn 0.3s ease;
+    }
     @keyframes blink { 50% { opacity: 0; } }
 
-    /* TICKER */
+    /* ── TICKER ── */
     .ticker-wrap { background: var(--card); border-bottom: 1px solid var(--border); padding: 6px 0; overflow: hidden; white-space: nowrap; }
     .ticker-inner { display: inline-block; animation: ticker 80s linear infinite; font-size: 12px; color: var(--dim); padding-left: 100%; }
     .ticker-inner b { color: var(--glow); }
     @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-    /* FILTERS */
-    .filter-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; overflow-x: auto; }
+    /* ── FILTERS ── */
+    .filter-bar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 10px 20px; overflow-x: auto;
+      /* Fix 7: fade hint on right edge for mobile scroll */
+      -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+      mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
     .filter-bar::-webkit-scrollbar { height: 3px; background: var(--bg); }
     .filter-bar::-webkit-scrollbar-thumb { background: var(--border); }
-    .filter-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 6px; align-items: center; }
+    .filter-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 6px; align-items: center; padding-right: 32px; }
     .filter-label { font-size: 10px; letter-spacing: 0.12em; color: var(--muted); flex-shrink: 0; margin-right: 4px; }
     .filter-btn {
       background: transparent; border: 1px solid var(--border);
@@ -116,7 +134,7 @@
     .filter-btn:hover { border-color: var(--glow); color: var(--glow); box-shadow: 0 0 8px rgba(0,255,65,0.2); }
     .filter-btn.active { background: var(--glow); border-color: var(--glow); color: #000; font-weight: bold; box-shadow: 0 0 12px rgba(0,255,65,0.5); }
 
-    /* SORT BAR */
+    /* ── SORT BAR ── */
     .sort-bar { max-width: 1200px; margin: 16px auto 0; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .result-count { font-size: 12px; color: var(--dim); }
     .result-count strong { color: var(--glow2); }
@@ -124,10 +142,10 @@
     .sort-btn { background: transparent; border: 1px solid var(--border); padding: 4px 12px; font-family: var(--font); font-size: 12px; color: var(--dim); cursor: pointer; transition: all 0.15s; }
     .sort-btn:hover, .sort-btn.active { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 8px rgba(0,255,204,0.25); }
 
-    /* GRID */
+    /* ── GRID ── */
     .grid { max-width: 1200px; margin: 16px auto 40px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
 
-    /* CARD */
+    /* ── CARD ── */
     .card {
       background: var(--card); border: 1px solid var(--border);
       padding: 0; display: flex; flex-direction: column;
@@ -143,25 +161,24 @@
     .card:hover { border-color: var(--glow); box-shadow: 0 0 16px rgba(0,255,65,0.15); }
     .card:hover::before { background: var(--glow); box-shadow: 0 0 10px var(--glow); }
 
-    .card-thumb {
-      width: 100%; height: 160px; object-fit: cover;
-      display: block; opacity: 0.85;
+    /* Fix 2: unified thumb container so placeholder and image take same space */
+    .card-thumb-wrap {
+      width: 100%; height: 160px; overflow: hidden;
       border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-thumb {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; opacity: 0.85;
       filter: saturate(0.7) brightness(0.9);
       transition: opacity 0.2s, filter 0.2s;
-      background: var(--surface);
     }
     .card:hover .card-thumb { opacity: 1; filter: saturate(1) brightness(1); }
-    .card-thumb-placeholder {
-      width: 100%; height: 100px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; color: var(--muted);
-    }
+    .card-thumb-placeholder { font-size: 36px; color: var(--muted); }
 
     .card-body { padding: 14px 14px 14px 17px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-
     .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .store-badge { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border: 1px solid; font-family: var(--font); flex-shrink: 0; }
     .store-amazon     { color: #ff9900; border-color: rgba(255,153,0,0.4); }
@@ -176,9 +193,7 @@
     .store-other      { color: var(--dim); border-color: var(--border); }
 
     .card-age { font-size: 10px; color: var(--muted); flex-shrink: 0; }
-
     .card-title { font-size: 13px; line-height: 1.5; color: var(--glow); }
-
     .card-price {
       font-family: var(--title); font-size: 22px; font-weight: 700;
       color: var(--glow2); letter-spacing: 1px;
@@ -186,14 +201,15 @@
     }
     .card-price.no-price { font-family: var(--font); font-size: 12px; color: var(--muted); font-weight: normal; }
 
+    /* Fix 5: card-link is now a div, not a span-inside-a */
     .card-link {
       display: inline-block; font-size: 12px; color: var(--cyan);
       letter-spacing: 0.08em; border: 1px solid rgba(0,255,204,0.3);
       padding: 6px 12px; transition: all 0.15s; width: fit-content; margin-top: auto;
     }
-    .card-link:hover { background: rgba(0,255,204,0.08); border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,255,204,0.3); }
+    .card:hover .card-link { background: rgba(0,255,204,0.08); border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,255,204,0.3); }
 
-    /* STATE */
+    /* ── STATE ── */
     .state-box { grid-column: 1/-1; text-align: center; padding: 60px 20px; }
     .state-title { font-size: 18px; color: var(--glow); margin-bottom: 8px; }
     .state-sub { font-size: 13px; color: var(--dim); line-height: 1.7; }
@@ -226,6 +242,7 @@
   </pre>
   <div class="boot-log" id="bootLog"></div>
   <div id="bootProgress"><div id="bootBar"></div></div>
+  <div id="bootSkip">[ CLICK ANYWHERE OR PRESS ANY KEY TO SKIP ]</div>
 </div>
 
 <div id="app" style="display:none;">
@@ -288,7 +305,7 @@
 </div>
 
 <footer>
-  LIVE DATA &mdash; <a href="https://slickdeals.net" target="_blank">Slickdeals.net</a>
+  LIVE DATA &mdash; <a href="https://slickdeals.net" target="_blank" rel="noopener noreferrer">Slickdeals.net</a>
   &nbsp;//&nbsp; COMMUNITY VERIFIED &nbsp;//&nbsp; REAL PRICES &nbsp;//&nbsp; REAL LINKS
   <br><span style="color:var(--muted);font-size:10px;">BUILT WITH ❤️ BY DAD &nbsp;•&nbsp; FORK IT ON GITHUB</span>
 </footer>
@@ -306,15 +323,42 @@ const bootLines = [
   { text: 'Fake price detector: ENABLED', cls: 'ok' },
   { text: 'Stores: Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, HP, Alienware + more', cls: 'ok' },
   { text: 'Nerd mode assets loaded \uD83E\uDD13', cls: 'ok' },
-  { text: 'Deal tracker ready — lets find some deals', cls: 'ok' },
+  // Fix 8: typo fixed — "let's"
+  { text: "Deal tracker ready \u2014 let's find some deals", cls: 'ok' },
 ];
 
 async function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+let bootDone = false;
+
+function finishBoot() {
+  if (bootDone) return;
+  bootDone = true;
+  // Fix 1: remove the keydown listener now that boot is done
+  document.removeEventListener('keydown', handleBootKey);
+  const logEl = document.getElementById('bootLog');
+  const barEl = document.getElementById('bootBar');
+  logEl.querySelectorAll('.boot-line').forEach(l => l.classList.add('visible'));
+  barEl.style.width = '100%';
+  document.getElementById('bootScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  fetchDeals();
+}
+
+// Fix 4: only skip on meaningful keys, not modifiers/tab/etc.
+function handleBootKey(e) {
+  const skip = ['Enter', ' ', 'Escape', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'];
+  if (skip.includes(e.key) || e.key.length === 1) finishBoot();
+}
+
+document.getElementById('bootScreen').addEventListener('click', finishBoot);
+document.addEventListener('keydown', handleBootKey);
 
 async function runBoot() {
   const logEl = document.getElementById('bootLog');
   const barEl = document.getElementById('bootBar');
   for (let i = 0; i < bootLines.length; i++) {
+    if (bootDone) return;
     const line = document.createElement('div');
     line.className = `boot-line ${bootLines[i].cls}`;
     line.textContent = bootLines[i].text;
@@ -324,17 +368,16 @@ async function runBoot() {
     barEl.style.width = ((i + 1) / bootLines.length * 100) + '%';
   }
   await delay(350);
-  document.getElementById('bootScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  fetchDeals();
+  finishBoot();
 }
 runBoot();
 
 // ── STATE ──
-let allDeals = [];
-let activeFilter = 'all';
-let activeSort   = 'new';
-let searchQuery  = '';
+let allDeals      = [];
+let activeFilter  = 'all';
+let activeSort    = 'new';
+let searchQuery   = '';
+let initialLoaded = false;
 
 // ── STORE DETECTION ──
 function detectStore(text) {
@@ -347,14 +390,14 @@ function detectStore(text) {
   if (t.includes('alienware'))                                return 'alienware';
   if (t.includes('costco'))                                   return 'costco';
   if (t.includes('dell'))                                     return 'dell';
-  if (t.includes('hp')||t.includes('hewlett'))               return 'hp';
+  if (/\bhp\b/.test(t)||t.includes('hewlett'))               return 'hp';
   return 'other';
 }
 
 const storeLabel = {
   amazon:'AMAZON', bestbuy:'BEST BUY', newegg:'NEWEGG',
   walmart:'WALMART', microcenter:'MICROCENTER', costco:'COSTCO',
-  dell:'DELL', hp:'HP', alienware:'ALIENWARE', other:'SLICKDEALS'
+  dell:'DELL', hp:'HP', alienware:'ALIENWARE', other:'SEE DEAL'
 };
 
 // ── CATEGORY DETECTION ──
@@ -369,34 +412,57 @@ function detectCategory(title) {
   if (/\b(laptop|notebook|chromebook|macbook)\b/.test(t))                          return 'laptop';
   if (/\b(cooler|aio|cpu fan|heatsink|liquid cool|water cool)\b/.test(t))         return 'cooling';
   if (/\b(psu|power supply|\bcase\b|chassis|atx case|itx case)\b/.test(t))        return 'psu';
-  if (/\b(motherboard|mobo|b650|z790|x670|b760|am5|lga\d)\b/.test(t))           return 'mobo';
+  if (/\b(motherboard|mobo|b650|z790|x670|b760|am5|lga\d)\b/.test(t))            return 'mobo';
   if (/\b(keyboard|mouse\b|headset|headphone|mousepad|controller|webcam|speaker)\b/.test(t)) return 'peripheral';
   return 'other';
 }
 
-// ── PRICE EXTRACTION ──
+// Fix 3: prefer first price found in title; fall back to description minimum
 function extractPrice(title, description) {
-  const text = title + ' ' + (description || '');
-  const matches = text.match(/\$[\d,]+(?:\.\d{2})?/g);
-  if (!matches) return null;
-  const prices = matches.map(p => parseFloat(p.replace(/[$,]/g, ''))).filter(p => p > 0 && p < 50000);
+  // Try title first — first dollar amount is usually the deal price
+  const titleMatch = title.match(/\$[\d,]+(?:\.\d{2})?/);
+  if (titleMatch) {
+    const val = parseFloat(titleMatch[0].replace(/[$,]/g, ''));
+    if (val > 0 && val < 50000) return val;
+  }
+  // Fall back to lowest price found anywhere in description
+  const allMatches = (description || '').match(/\$[\d,]+(?:\.\d{2})?/g);
+  if (!allMatches) return null;
+  const prices = allMatches
+    .map(p => parseFloat(p.replace(/[$,]/g, '')))
+    .filter(p => p > 0 && p < 50000);
   return prices.length ? Math.min(...prices) : null;
 }
 
+// Fix 1: proper HTML encoder — encodes outward, never decodes
+function encodeHtml(s) {
+  return (s || '')
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
+
+// Decode RSS entities for display text that goes into textContent (safe path)
+function decodeEntities(s) {
+  return (s || '')
+    .replace(/&amp;/g,  '&')
+    .replace(/&lt;/g,   '<')
+    .replace(/&gt;/g,   '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g,  "'");
+}
+
 function timeAgo(dateStr) {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  const diff = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
   if (diff < 60)    return `${diff}s ago`;
   if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
   return `${Math.floor(diff/86400)}d ago`;
 }
 
-function escHtml(s) {
-  return (s||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
-}
-
-// ── SLICKDEALS RSS FEEDS via rss2json ──
-// Free tier returns 10 items per feed. We query several keyword sets to get broad coverage.
+// ── FETCH ──
 const SEARCH_QUERIES = [
   'gpu+rtx+radeon+graphics',
   'cpu+ryzen+intel+processor',
@@ -405,7 +471,6 @@ const SEARCH_QUERIES = [
   'laptop+monitor+keyboard+mouse',
   'newegg+microcenter+bestbuy+walmart',
 ];
-
 const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const SD_BASE  = 'https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&rss=1&q=';
 
@@ -416,11 +481,10 @@ async function fetchDeals() {
         .then(r => r.json())
         .catch(() => ({ items: [] }))
     );
-
     const results = await Promise.all(requests);
 
-    const seen = new Set();
-    allDeals = [];
+    const seen    = new Set();
+    const fresh   = [];
 
     for (const data of results) {
       if (data.status !== 'ok') continue;
@@ -429,46 +493,65 @@ async function fetchDeals() {
         if (seen.has(id)) continue;
         seen.add(id);
 
-        const title = escHtml(item.title || '');
-        const price = extractPrice(item.title, item.description);
+        // Fix 1: decode for storage/logic, encode when injecting into innerHTML
+        const rawTitle = decodeEntities(item.title || '');
+        const price    = extractPrice(rawTitle, item.description);
 
-        allDeals.push({
+        fresh.push({
           id,
-          title,
-          link: item.link,
-          thumbnail: item.thumbnail || '',
+          title:       rawTitle,
+          link:        item.link,
+          thumbnail:   item.thumbnail || '',
           description: item.description || '',
-          pubDate: item.pubDate,
-          store: detectStore(item.title + ' ' + (item.description || '')),
-          category: detectCategory(item.title),
+          pubDate:     item.pubDate,
+          store:       detectStore(rawTitle + ' ' + (item.description || '')),
+          category:    detectCategory(rawTitle),
           price,
-          author: item.author || '',
+          author:      item.author || '',
         });
       }
     }
 
+    allDeals = fresh;
+    initialLoaded = true;
+
     // Update ticker
     const tickerText = allDeals.slice(0, 20).map(d =>
-      `<b>${storeLabel[d.store]}</b> ${d.title.substring(0,55)}${d.title.length>55?'...':''}`
+      `<b>${storeLabel[d.store]}</b> ${encodeHtml(d.title.substring(0, 55))}${d.title.length > 55 ? '...' : ''}`
     ).join(' &nbsp;•&nbsp; ');
     const t = document.getElementById('ticker');
     t.innerHTML = tickerText + ' &nbsp;•&nbsp; ' + tickerText;
 
     document.getElementById('lastUpdated').textContent =
-      'LIVE // ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      'LIVE // ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Remove any stale refresh-fail toast
+    const stale = document.getElementById('refreshFail');
+    if (stale) stale.remove();
 
     renderDeals();
-  } catch(err) {
-    document.getElementById('dealGrid').innerHTML = `
-      <div class="state-box">
-        <div class="state-title">&gt; ERROR: FEED UNAVAILABLE</div>
-        <div class="state-sub">
-          Could not load deal feed. Check your internet connection.<br><br>
-          <a href="https://slickdeals.net/deals/computers-electronics/" target="_blank">
-            &gt; BROWSE SLICKDEALS DIRECTLY →
-          </a>
-        </div>
-      </div>`;
+  } catch (err) {
+    if (!initialLoaded) {
+      // First load failure — show full error state
+      document.getElementById('dealGrid').innerHTML = `
+        <div class="state-box">
+          <div class="state-title">&gt; ERROR: FEED UNAVAILABLE</div>
+          <div class="state-sub">
+            Could not load deal feed. Check your internet connection.<br><br>
+            <a href="https://slickdeals.net/deals/computers-electronics/" target="_blank" rel="noopener noreferrer">
+              &gt; BROWSE SLICKDEALS DIRECTLY →
+            </a>
+          </div>
+        </div>`;
+    } else {
+      // Fix 6: background refresh failure — keep existing cards, show small toast
+      const toast = document.createElement('div');
+      toast.id = 'refreshFail';
+      toast.className = 'refresh-fail';
+      toast.textContent = '⚠ REFRESH FAILED — showing cached deals';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
   }
 }
 
@@ -478,10 +561,13 @@ function renderDeals() {
   if (activeFilter !== 'all') deals = deals.filter(d => d.category === activeFilter);
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    deals = deals.filter(d => d.title.toLowerCase().includes(q) || storeLabel[d.store].toLowerCase().includes(q));
+    deals = deals.filter(d =>
+      d.title.toLowerCase().includes(q) ||
+      storeLabel[d.store].toLowerCase().includes(q)
+    );
   }
-  if (activeSort === 'new')   deals.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
-  if (activeSort === 'price') deals.sort((a,b) => {
+  if (activeSort === 'new')   deals.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+  if (activeSort === 'price') deals.sort((a, b) => {
     if (a.price === null && b.price === null) return 0;
     if (a.price === null) return 1;
     if (b.price === null) return -1;
@@ -493,30 +579,37 @@ function renderDeals() {
   count.innerHTML = `<strong>${deals.length}</strong> DEALS FOUND // FILTER: ${activeFilter.toUpperCase()}`;
 
   if (!deals.length) {
-    grid.innerHTML = `<div class="state-box"><div class="state-title">&gt; NO RESULTS</div><div class="state-sub">Try a different category or clear the search.</div></div>`;
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-title">&gt; NO RESULTS</div>
+        <div class="state-sub">Try a different category or clear the search.</div>
+      </div>`;
     return;
   }
 
   grid.innerHTML = deals.map(d => {
-    const priceHtml = d.price
-      ? `<div class="card-price">$${d.price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>`
+    const priceHtml = d.price != null
+      ? `<div class="card-price">$${d.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`
       : `<div class="card-price no-price">See deal for price</div>`;
 
-    const imgHtml = d.thumbnail
-      ? `<img class="card-thumb" src="${d.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">`
-      : `<div class="card-thumb-placeholder">💻</div>`;
+    // Fix 2: unified thumb container — placeholder emoji sits in same-height box
+    const thumbHtml = d.thumbnail
+      ? `<div class="card-thumb-wrap"><img class="card-thumb" src="${encodeHtml(d.thumbnail)}" alt="" loading="lazy"
+           onerror="this.parentElement.innerHTML='<span class=\\'card-thumb-placeholder\\'>💻</span>'"></div>`
+      : `<div class="card-thumb-wrap"><span class="card-thumb-placeholder">💻</span></div>`;
 
+    // Fix 5: card-link is now a div — no nested interactive element inside <a>
     return `
-    <a class="card" href="${d.link}" target="_blank" rel="noopener">
-      ${imgHtml}
+    <a class="card" href="${encodeHtml(d.link)}" target="_blank" rel="noopener noreferrer">
+      ${thumbHtml}
       <div class="card-body">
         <div class="card-top">
           <span class="store-badge store-${d.store}">${storeLabel[d.store]}</span>
           <span class="card-age">${timeAgo(d.pubDate)}</span>
         </div>
-        <div class="card-title">${d.title}</div>
+        <div class="card-title">${encodeHtml(d.title)}</div>
         ${priceHtml}
-        <span class="card-link">&gt; VIEW_DEAL.EXE →</span>
+        <div class="card-link">&gt; VIEW_DEAL.EXE →</div>
       </div>
     </a>`;
   }).join('');
@@ -544,6 +637,7 @@ document.getElementById('searchInput').addEventListener('input', e => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => { searchQuery = e.target.value.trim(); renderDeals(); }, 250);
 });
+
 setInterval(fetchDeals, 5 * 60 * 1000);
 </script>
 </body>
