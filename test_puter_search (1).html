@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Puter Web Search Test</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    body { background: #020c02; color: #00ff41; font-family: monospace; padding: 20px; }
+    pre { white-space: pre-wrap; word-wrap: break-word; background: #041904; padding: 16px; border: 1px solid #1a4d1a; margin-top: 12px; font-size: 13px; line-height: 1.6; }
+    button { background: #00ff41; border: none; padding: 10px 20px; font-family: monospace; font-weight: bold; cursor: pointer; margin: 6px 4px; }
+    h3 { color: #00ffcc; margin-top: 20px; }
+    .label { color: #cc44ff; font-size: 11px; letter-spacing: 0.1em; }
+  </style>
+</head>
+<body>
+  <h2>> PUTER.JS WEB SEARCH TEST</h2>
+  <p>Testing whether Puter's web search tool returns useful PC deal data.</p>
+
+  <h3>TEST 1 — Best GPU deal right now</h3>
+  <button onclick="runTest1()">RUN TEST 1</button>
+  <div class="label">QUERY: "What are the best GPU deals available right now under $400?"</div>
+  <pre id="result1">[ click to run ]</pre>
+
+  <h3>TEST 2 — Specific product price check</h3>
+  <button onclick="runTest2()">RUN TEST 2</button>
+  <div class="label">QUERY: "What is the current price of RTX 4070 and is it a good deal?"</div>
+  <pre id="result2">[ click to run ]</pre>
+
+  <h3>TEST 3 — Build advisor with web search</h3>
+  <button onclick="runTest3()">RUN TEST 3</button>
+  <div class="label">QUERY: "I want to build a 1440p gaming PC under $900. What PC parts deals are available right now?"</div>
+  <pre id="result3">[ click to run ]</pre>
+
+  <h3>TEST 4 — Raw response object inspection</h3>
+  <button onclick="runTest4()">RUN TEST 4</button>
+  <div class="label">Inspect full response structure to understand what web_search returns</div>
+  <pre id="result4">[ click to run ]</pre>
+
+<script>
+async function runTest1() {
+  const el = document.getElementById('result1');
+  el.textContent = '> Searching...';
+  try {
+    const start = Date.now();
+    const response = await puter.ai.chat(
+      "What are the best GPU deals available right now under $400? List specific products and prices.",
+      { model: 'gpt-5.4-nano', tools: [{ type: 'web_search' }] }
+    );
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    const text = typeof response === 'string' ? response
+      : response?.message?.content?.[0]?.text
+      || JSON.stringify(response, null, 2);
+    el.textContent = `[${elapsed}s]\n\n${text}`;
+  } catch(e) {
+    el.textContent = 'ERROR: ' + e.message;
+  }
+}
+
+async function runTest2() {
+  const el = document.getElementById('result2');
+  el.textContent = '> Searching...';
+  try {
+    const start = Date.now();
+    const response = await puter.ai.chat(
+      "What is the current retail price of the RTX 4070 Super? Is it a good deal right now or should I wait?",
+      { model: 'gpt-5.4-nano', tools: [{ type: 'web_search' }] }
+    );
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    const text = typeof response === 'string' ? response
+      : response?.message?.content?.[0]?.text
+      || JSON.stringify(response, null, 2);
+    el.textContent = `[${elapsed}s]\n\n${text}`;
+  } catch(e) {
+    el.textContent = 'ERROR: ' + e.message;
+  }
+}
+
+async function runTest3() {
+  const el = document.getElementById('result3');
+  el.textContent = '> Searching...';
+  try {
+    const start = Date.now();
+    const response = await puter.ai.chat(
+      "I want to build a 1440p gaming PC under $900. Search for current PC parts deals and prebuilt deals available right now and recommend what to buy.",
+      { model: 'gpt-5.4-nano', tools: [{ type: 'web_search' }] }
+    );
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    const text = typeof response === 'string' ? response
+      : response?.message?.content?.[0]?.text
+      || JSON.stringify(response, null, 2);
+    el.textContent = `[${elapsed}s]\n\n${text}`;
+  } catch(e) {
+    el.textContent = 'ERROR: ' + e.message;
+  }
+}
+
+async function runTest4() {
+  const el = document.getElementById('result4');
+  el.textContent = '> Searching...';
+  try {
+    const start = Date.now();
+    const response = await puter.ai.chat(
+      "What GPU deals are on sale today at Newegg or Best Buy?",
+      { model: 'gpt-5.4-nano', tools: [{ type: 'web_search' }] }
+    );
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    // Dump full raw structure
+    el.textContent = `[${elapsed}s]\n\nFULL RESPONSE TYPE: ${typeof response}\n\nSTRINGIFIED:\n${JSON.stringify(response, null, 2)}`;
+  } catch(e) {
+    el.textContent = 'ERROR: ' + (e.message || JSON.stringify(e));
+  }
+}
+</script>
+</body>
+</html>
