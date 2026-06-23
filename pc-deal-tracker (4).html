@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PC Deal Tracker // NERD MODE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    :root {
+      --bg:      #020c02;
+      --surface: #031403;
+      --card:    #041904;
+      --border:  #1a4d1a;
+      --glow:    #00ff41;
+      --glow2:   #39ff14;
+      --dim:     #00aa2a;
+      --muted:   #2d6b2d;
+      --amber:   #ffb000;
+      --red:     #ff3333;
+      --cyan:    #00ffcc;
+      --purple:  #cc44ff;
+      --font:    'Share Tech Mono', monospace;
+      --title:   'Orbitron', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--glow);
+      font-family: var(--font); min-height: 100vh;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,255,65,0.015) 2px, rgba(0,255,65,0.015) 4px
+      );
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* ── BOOT ── */
+    #bootScreen {
+      position: fixed; inset: 0; background: var(--bg); z-index: 8000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-family: var(--font); color: var(--glow); padding: 40px; cursor: pointer;
+    }
+    #bootScreen pre {
+      font-size: clamp(7px, 1.4vw, 13px); line-height: 1.2; color: var(--glow);
+      text-shadow: 0 0 8px var(--glow); margin-bottom: 24px; text-align: center; pointer-events: none;
+    }
+    .boot-log { width: 100%; max-width: 580px; text-align: left; pointer-events: none; }
+    .boot-line { opacity: 0; margin: 3px 0; font-size: 13px; }
+    .boot-line.ok::after   { content: ' [OK]';   color: var(--glow2); }
+    .boot-line.warn::after { content: ' [WARN]'; color: var(--amber); }
+    .boot-line.visible { opacity: 1; }
+    #bootProgress { width: 100%; max-width: 580px; margin-top: 20px; height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden; pointer-events: none; }
+    #bootBar { height: 100%; width: 0%; background: var(--glow); box-shadow: 0 0 10px var(--glow); transition: width 0.25s ease; }
+    #bootSkip { margin-top: 16px; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; pointer-events: none; animation: fadeIn 1s ease 0.5s both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface); border-bottom: 2px solid var(--border);
+      padding: 0 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 0 20px rgba(0,255,65,0.1);
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; gap: 16px;
+    }
+    .logo { display: flex; flex-direction: column; line-height: 1; flex-shrink: 0; }
+    .logo-main {
+      font-family: var(--title); font-size: 18px; font-weight: 900;
+      letter-spacing: 3px; color: var(--glow);
+      text-shadow: 0 0 12px var(--glow), 0 0 25px rgba(0,255,65,0.4);
+    }
+    .logo-main span { color: var(--cyan); }
+    .logo-sub { font-size: 9px; letter-spacing: 2px; color: var(--dim); margin-top: 2px; }
+    .search-wrap { flex: 1; max-width: 420px; position: relative; }
+    .search-wrap input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      padding: 8px 14px 8px 36px; color: var(--glow); font-family: var(--font);
+      font-size: 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; caret-color: var(--glow);
+    }
+    .search-wrap input:focus { border-color: var(--glow); box-shadow: 0 0 12px rgba(0,255,65,0.3); }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--dim); pointer-events: none; }
+    .header-status { font-size: 11px; color: var(--dim); text-align: right; flex-shrink: 0; line-height: 1.6; }
+    .status-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--glow2); box-shadow: 0 0 6px var(--glow2);
+      animation: blink 1.2s step-end infinite; margin-right: 4px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── AI SUMMARY BAR ── */
+    #aiSummaryBar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 10px 20px; display: none;
+    }
+    .ai-summary-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .ai-summary-label {
+      font-size: 10px; letter-spacing: 0.1em; color: var(--purple);
+      flex-shrink: 0; margin-top: 2px; white-space: nowrap;
+    }
+    #aiSummaryText {
+      font-size: 12px; color: var(--dim); line-height: 1.6; flex: 1;
+    }
+    #aiSummaryText.loading { color: var(--muted); animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── REFRESH FAIL TOAST ── */
+    .refresh-fail {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--surface); border: 1px solid var(--red);
+      color: var(--red); font-family: var(--font); font-size: 12px;
+      padding: 8px 14px; z-index: 500; animation: fadeIn 0.3s ease;
+    }
+
+    /* ── TICKER ── */
+    .ticker-wrap { background: var(--card); border-bottom: 1px solid var(--border); padding: 6px 0; overflow: hidden; white-space: nowrap; }
+    .ticker-inner { display: inline-block; animation: ticker 80s linear infinite; font-size: 12px; color: var(--dim); padding-left: 100%; }
+    .ticker-inner b { color: var(--glow); }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ── FILTERS ── */
+    .filter-bar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 10px 20px; overflow-x: auto;
+      -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+      mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+    .filter-bar::-webkit-scrollbar { height: 3px; background: var(--bg); }
+    .filter-bar::-webkit-scrollbar-thumb { background: var(--border); }
+    .filter-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 6px; align-items: center; padding-right: 32px; }
+    .filter-label { font-size: 10px; letter-spacing: 0.12em; color: var(--muted); flex-shrink: 0; margin-right: 4px; }
+    .filter-btn {
+      background: transparent; border: 1px solid var(--border);
+      padding: 4px 12px; font-family: var(--font); font-size: 12px;
+      color: var(--dim); cursor: pointer; white-space: nowrap; transition: all 0.15s; letter-spacing: 0.05em;
+    }
+    .filter-btn:hover { border-color: var(--glow); color: var(--glow); box-shadow: 0 0 8px rgba(0,255,65,0.2); }
+    .filter-btn.active { background: var(--glow); border-color: var(--glow); color: #000; font-weight: bold; box-shadow: 0 0 12px rgba(0,255,65,0.5); }
+
+    /* ── SORT + BUILD ADVISOR ── */
+    .sort-bar {
+      max-width: 1200px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .result-count { font-size: 12px; color: var(--dim); }
+    .result-count strong { color: var(--glow2); }
+    .sort-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .sort-btn { background: transparent; border: 1px solid var(--border); padding: 4px 12px; font-family: var(--font); font-size: 12px; color: var(--dim); cursor: pointer; transition: all 0.15s; }
+    .sort-btn:hover, .sort-btn.active { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 8px rgba(0,255,204,0.25); }
+
+    /* Build Advisor toggle button */
+    #advisorToggle {
+      background: transparent; border: 1px solid var(--purple);
+      padding: 4px 12px; font-family: var(--font); font-size: 12px;
+      color: var(--purple); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    #advisorToggle:hover { background: rgba(204,68,255,0.1); box-shadow: 0 0 8px rgba(204,68,255,0.3); }
+
+    /* ── BUILD ADVISOR PANEL ── */
+    #advisorPanel {
+      max-width: 1200px; margin: 12px auto 0; padding: 0 20px; display: none;
+    }
+    .advisor-inner {
+      background: var(--card); border: 1px solid var(--purple);
+      padding: 16px; box-shadow: 0 0 20px rgba(204,68,255,0.1);
+    }
+    .advisor-title {
+      font-size: 12px; color: var(--purple); letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .advisor-input-row { display: flex; gap: 8px; }
+    #advisorInput {
+      flex: 1; background: var(--bg); border: 1px solid var(--border);
+      padding: 8px 12px; color: var(--glow); font-family: var(--font);
+      font-size: 13px; outline: none; caret-color: var(--glow);
+      transition: border-color 0.2s;
+    }
+    #advisorInput:focus { border-color: var(--purple); }
+    #advisorInput::placeholder { color: var(--muted); }
+    #advisorSubmit {
+      background: var(--purple); border: none; padding: 8px 16px;
+      font-family: var(--font); font-size: 12px; color: #000;
+      cursor: pointer; font-weight: bold; white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    #advisorSubmit:hover { opacity: 0.85; }
+    #advisorSubmit:disabled { opacity: 0.4; cursor: not-allowed; }
+    #advisorResult {
+      margin-top: 12px; font-size: 13px; color: var(--dim);
+      line-height: 1.7; display: none; border-top: 1px solid var(--border); padding-top: 12px;
+    }
+    #advisorResult.loading { color: var(--muted); animation: pulse 1.5s ease-in-out infinite; display: block; }
+    #advisorResult.done { display: block; color: var(--glow); }
+
+    /* ── GRID ── */
+    .grid { max-width: 1200px; margin: 16px auto 40px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 0; display: flex; flex-direction: column;
+      text-decoration: none; color: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; background: var(--border);
+      transition: background 0.2s, box-shadow 0.2s; z-index: 1;
+    }
+    .card:hover { border-color: var(--glow); box-shadow: 0 0 16px rgba(0,255,65,0.15); }
+    .card:hover::before { background: var(--glow); box-shadow: 0 0 10px var(--glow); }
+
+    .card-thumb-wrap {
+      width: 100%; height: 160px; overflow: hidden;
+      border-bottom: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .card-thumb {
+      width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.85;
+      filter: saturate(0.7) brightness(0.9); transition: opacity 0.2s, filter 0.2s;
+    }
+    .card:hover .card-thumb { opacity: 1; filter: saturate(1) brightness(1); }
+    .card-thumb-placeholder { font-size: 36px; color: var(--muted); }
+
+    .card-body { padding: 14px 14px 14px 17px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .store-badge { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border: 1px solid; font-family: var(--font); flex-shrink: 0; }
+    .store-amazon     { color: #ff9900; border-color: rgba(255,153,0,0.4); }
+    .store-bestbuy    { color: #5599ff; border-color: rgba(85,153,255,0.4); }
+    .store-newegg     { color: #ff6622; border-color: rgba(255,102,34,0.4); }
+    .store-walmart    { color: #44aaff; border-color: rgba(68,170,255,0.4); }
+    .store-microcenter{ color: #ff4466; border-color: rgba(255,68,102,0.4); }
+    .store-costco     { color: #ff4400; border-color: rgba(255,68,0,0.4); }
+    .store-dell       { color: #33bbff; border-color: rgba(51,187,255,0.4); }
+    .store-hp         { color: #00ccff; border-color: rgba(0,204,255,0.4); }
+    .store-alienware  { color: #cc44ff; border-color: rgba(204,68,255,0.4); }
+    .store-other      { color: var(--dim); border-color: var(--border); }
+
+    .card-age { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+    .card-title { font-size: 13px; line-height: 1.5; color: var(--glow); }
+    .card-price {
+      font-family: var(--title); font-size: 22px; font-weight: 700;
+      color: var(--glow2); letter-spacing: 1px; text-shadow: 0 0 10px rgba(57,255,20,0.5);
+    }
+    .card-price.no-price { font-family: var(--font); font-size: 12px; color: var(--muted); font-weight: normal; }
+
+    .card-actions { display: flex; gap: 8px; align-items: center; margin-top: auto; }
+    .card-link {
+      display: inline-block; font-size: 12px; color: var(--cyan);
+      letter-spacing: 0.08em; border: 1px solid rgba(0,255,204,0.3);
+      padding: 6px 12px; transition: all 0.15s; flex: 1; text-align: center;
+    }
+    .card:hover .card-link { background: rgba(0,255,204,0.08); border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,255,204,0.3); }
+
+    /* AI Analyze button on card */
+    .ai-btn {
+      display: inline-block; font-size: 12px; color: var(--purple);
+      letter-spacing: 0.06em; border: 1px solid rgba(204,68,255,0.3);
+      padding: 6px 10px; transition: all 0.15s; cursor: pointer;
+      background: transparent; font-family: var(--font); white-space: nowrap;
+    }
+    .ai-btn:hover { background: rgba(204,68,255,0.1); border-color: var(--purple); box-shadow: 0 0 10px rgba(204,68,255,0.25); }
+    .ai-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* AI analysis result panel inside card */
+    .card-ai-result {
+      font-size: 12px; line-height: 1.6; color: var(--dim);
+      border-top: 1px solid var(--border); padding-top: 10px;
+      display: none;
+    }
+    .card-ai-result.loading { display: block; color: var(--muted); animation: pulse 1.5s ease-in-out infinite; }
+    .card-ai-result.done { display: block; color: var(--glow); }
+    .ai-result-label { color: var(--purple); font-size: 10px; letter-spacing: 0.1em; margin-bottom: 4px; }
+
+    /* ── STATE ── */
+    .state-box { grid-column: 1/-1; text-align: center; padding: 60px 20px; }
+    .state-title { font-size: 18px; color: var(--glow); margin-bottom: 8px; }
+    .state-sub { font-size: 13px; color: var(--dim); line-height: 1.7; }
+    .state-sub a { color: var(--glow); }
+    .spinner { width: 36px; height: 36px; border: 2px solid var(--border); border-top-color: var(--glow); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 20px; box-shadow: 0 0 10px rgba(0,255,65,0.3); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer { border-top: 1px solid var(--border); padding: 16px 20px; text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+    footer a { color: var(--glow); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .header-status { display: none; }
+      .logo-main { font-size: 14px; }
+      .grid { grid-template-columns: 1fr; }
+      .sort-bar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="bootScreen">
+  <pre>
+██████╗  ██████╗    ██████╗ ███████╗ █████╗ ██╗
+██╔══██╗██╔════╝    ██╔══██╗██╔════╝██╔══██╗██║
+██████╔╝██║         ██║  ██║█████╗  ███████║██║
+██╔═══╝ ██║         ██║  ██║██╔══╝  ██╔══██║██║
+██║     ╚██████╗    ██████╔╝███████╗██║  ██║███████╗
+╚═╝      ╚═════╝    ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝
+        T R A C K E R  //  N E R D  M O D E
+  </pre>
+  <div class="boot-log" id="bootLog"></div>
+  <div id="bootProgress"><div id="bootBar"></div></div>
+  <div id="bootSkip">[ CLICK ANYWHERE OR PRESS ANY KEY TO SKIP ]</div>
+</div>
+
+<div id="app" style="display:none;">
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-main">PC<span>DEALS</span></div>
+      <div class="logo-sub">// NERD MODE + AI ACTIVATED //</div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-prefix">&gt;_</span>
+      <input type="text" id="searchInput" placeholder="search: RTX 5080, Ryzen 9, prebuilt..." />
+    </div>
+    <div class="header-status">
+      <div><span class="status-dot"></span><span id="lastUpdated">CONNECTING...</span></div>
+      <div style="color:var(--muted);font-size:10px;">SRC: SLICKDEALS.NET + AI</div>
+    </div>
+  </div>
+</header>
+
+<!-- AI SUMMARY BAR -->
+<div id="aiSummaryBar">
+  <div class="ai-summary-inner">
+    <span class="ai-summary-label">🤖 AI DIGEST //</span>
+    <span id="aiSummaryText" class="loading">&gt; Scanning deals...</span>
+  </div>
+</div>
+
+<div class="ticker-wrap">
+  <div class="ticker-inner" id="ticker">
+    LOADING DEAL FEED... &nbsp;•&nbsp; SCANNING FOR PC PARTS... &nbsp;•&nbsp; CHECKING PRICES... &nbsp;•&nbsp;
+    LOADING DEAL FEED... &nbsp;•&nbsp; SCANNING FOR PC PARTS... &nbsp;•&nbsp; CHECKING PRICES...
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-inner">
+    <span class="filter-label">CAT://</span>
+    <button class="filter-btn active" data-filter="all">ALL</button>
+    <button class="filter-btn" data-filter="gpu">GPU</button>
+    <button class="filter-btn" data-filter="cpu">CPU</button>
+    <button class="filter-btn" data-filter="ram">RAM</button>
+    <button class="filter-btn" data-filter="ssd">SSD</button>
+    <button class="filter-btn" data-filter="prebuilt">PREBUILT</button>
+    <button class="filter-btn" data-filter="monitor">MONITOR</button>
+    <button class="filter-btn" data-filter="laptop">LAPTOP</button>
+    <button class="filter-btn" data-filter="cooling">COOLING</button>
+    <button class="filter-btn" data-filter="psu">PSU/CASE</button>
+    <button class="filter-btn" data-filter="mobo">MOBO</button>
+    <button class="filter-btn" data-filter="peripheral">PERIPHERALS</button>
+  </div>
+</div>
+
+<div class="sort-bar">
+  <div class="result-count" id="resultCount">LOADING...</div>
+  <div class="sort-controls">
+    <button class="sort-btn active" data-sort="new">[NEWEST]</button>
+    <button class="sort-btn" data-sort="price">[LOWEST PRICE]</button>
+    <button id="advisorToggle">🤖 BUILD ADVISOR</button>
+  </div>
+</div>
+
+<!-- BUILD ADVISOR PANEL -->
+<div id="advisorPanel">
+  <div class="advisor-inner">
+    <div class="advisor-title">🤖 AI BUILD ADVISOR // Tell me what you want to build or buy</div>
+    <div class="advisor-input-row">
+      <input type="text" id="advisorInput"
+        placeholder="e.g. I want a 1440p gaming PC under $900, or best GPU deal right now" />
+      <button id="advisorSubmit">ANALYZE &gt;&gt;</button>
+    </div>
+    <div id="advisorResult"></div>
+  </div>
+</div>
+
+<div class="grid" id="dealGrid">
+  <div class="state-box">
+    <div class="spinner"></div>
+    <div class="state-title">&gt; INITIALIZING DEAL FEED...</div>
+    <div class="state-sub">Pulling live data from Slickdeals.net<br>Real prices. Real links. No hallucinations.</div>
+  </div>
+</div>
+
+<footer>
+  LIVE DATA &mdash; <a href="https://slickdeals.net" target="_blank" rel="noopener noreferrer">Slickdeals.net</a>
+  &nbsp;//&nbsp; AI POWERED BY <a href="https://puter.com" target="_blank" rel="noopener noreferrer">PUTER.JS</a>
+  &nbsp;//&nbsp; REAL PRICES &nbsp;//&nbsp; REAL LINKS
+  <br><span style="color:var(--muted);font-size:10px;">BUILT WITH ❤️ BY DAD &nbsp;•&nbsp; FORK IT ON GITHUB</span>
+</footer>
+</div>
+
+<script>
+// ── BOOT ──
+const bootLines = [
+  { text: 'BIOS v2.26.0 ... initializing hardware', cls: 'ok' },
+  { text: 'Loading kernel modules', cls: 'ok' },
+  { text: 'Mounting /dev/deals ... read/write', cls: 'ok' },
+  { text: 'Reddit API: LOCKED DOWN (rip)', cls: 'warn' },
+  { text: 'Switching to Slickdeals.net RSS feed', cls: 'ok' },
+  { text: 'Hallucination filter: ENABLED', cls: 'ok' },
+  { text: 'Fake price detector: ENABLED', cls: 'ok' },
+  { text: 'Puter.js AI engine: ONLINE', cls: 'ok' },
+  { text: 'Stores: Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, HP, Alienware + more', cls: 'ok' },
+  { text: 'Nerd mode assets loaded \uD83E\uDD13', cls: 'ok' },
+  { text: "Deal tracker ready \u2014 let's find some deals", cls: 'ok' },
+];
+
+async function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+let bootDone = false;
+
+function finishBoot() {
+  if (bootDone) return;
+  bootDone = true;
+  document.removeEventListener('keydown', handleBootKey);
+  document.getElementById('bootLog').querySelectorAll('.boot-line').forEach(l => l.classList.add('visible'));
+  document.getElementById('bootBar').style.width = '100%';
+  document.getElementById('bootScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  fetchDeals();
+}
+
+function handleBootKey(e) {
+  const skip = ['Enter', ' ', 'Escape', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'];
+  if (skip.includes(e.key) || e.key.length === 1) finishBoot();
+}
+
+document.getElementById('bootScreen').addEventListener('click', finishBoot);
+document.addEventListener('keydown', handleBootKey);
+
+async function runBoot() {
+  const logEl = document.getElementById('bootLog');
+  const barEl = document.getElementById('bootBar');
+  for (let i = 0; i < bootLines.length; i++) {
+    if (bootDone) return;
+    const line = document.createElement('div');
+    line.className = `boot-line ${bootLines[i].cls}`;
+    line.textContent = bootLines[i].text;
+    logEl.appendChild(line);
+    await delay(75);
+    line.classList.add('visible');
+    barEl.style.width = ((i + 1) / bootLines.length * 100) + '%';
+  }
+  await delay(350);
+  finishBoot();
+}
+runBoot();
+
+// ── STATE ──
+let allDeals      = [];
+let activeFilter  = 'all';
+let activeSort    = 'new';
+let searchQuery   = '';
+let initialLoaded = false;
+
+// ── STORE DETECTION ──
+function detectStore(text) {
+  const t = text.toLowerCase();
+  if (t.includes('amazon') || t.includes('amzn'))            return 'amazon';
+  if (t.includes('best buy') || t.includes('bestbuy'))       return 'bestbuy';
+  if (t.includes('newegg'))                                   return 'newegg';
+  if (t.includes('walmart'))                                  return 'walmart';
+  if (t.includes('microcenter')||t.includes('micro center')) return 'microcenter';
+  if (t.includes('alienware'))                                return 'alienware';
+  if (t.includes('costco'))                                   return 'costco';
+  if (t.includes('dell'))                                     return 'dell';
+  if (/\bhp\b/.test(t) || t.includes('hewlett'))             return 'hp';
+  return 'other';
+}
+
+const storeLabel = {
+  amazon:'AMAZON', bestbuy:'BEST BUY', newegg:'NEWEGG',
+  walmart:'WALMART', microcenter:'MICROCENTER', costco:'COSTCO',
+  dell:'DELL', hp:'HP', alienware:'ALIENWARE', other:'SEE DEAL'
+};
+
+// ── CATEGORY DETECTION ──
+function detectCategory(title) {
+  const t = title.toLowerCase();
+  if (/\b(rtx|rx \d|arc |radeon|geforce|gpu|graphics card|video card)\b/.test(t)) return 'gpu';
+  if (/\b(ryzen|intel core|i[3579]-\d|cpu|processor|xeon)\b/.test(t))             return 'cpu';
+  if (/\b(ddr[45]|\bram\b|memory|dimm|sodimm)\b/.test(t))                         return 'ram';
+  if (/\b(ssd|nvme|hdd|hard drive|m\.2|\bstorage\b)\b/.test(t))                  return 'ssd';
+  if (/\b(prebuilt|pre-built|pre built|desktop pc|gaming pc|gaming desktop|mini pc)\b/.test(t)) return 'prebuilt';
+  if (/\b(monitor|display|1080p|1440p|\b4k\b|144hz|240hz|oled screen)\b/.test(t)) return 'monitor';
+  if (/\b(laptop|notebook|chromebook|macbook)\b/.test(t))                          return 'laptop';
+  if (/\b(cooler|aio|cpu fan|heatsink|liquid cool|water cool)\b/.test(t))         return 'cooling';
+  if (/\b(psu|power supply|\bcase\b|chassis|atx case|itx case)\b/.test(t))        return 'psu';
+  if (/\b(motherboard|mobo|b650|z790|x670|b760|am5|lga\d)\b/.test(t))            return 'mobo';
+  if (/\b(keyboard|mouse\b|headset|headphone|mousepad|controller|webcam|speaker)\b/.test(t)) return 'peripheral';
+  return 'other';
+}
+
+// ── PRICE EXTRACTION ──
+function extractPrice(title, description) {
+  const titleMatch = title.match(/\$[\d,]+(?:\.\d{2})?/);
+  if (titleMatch) {
+    const val = parseFloat(titleMatch[0].replace(/[$,]/g, ''));
+    if (val > 0 && val < 50000) return val;
+  }
+  const allMatches = (description || '').match(/\$[\d,]+(?:\.\d{2})?/g);
+  if (!allMatches) return null;
+  const prices = allMatches.map(p => parseFloat(p.replace(/[$,]/g, ''))).filter(p => p > 0 && p < 50000);
+  return prices.length ? Math.min(...prices) : null;
+}
+
+function encodeHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function decodeEntities(s) {
+  return (s || '').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+}
+
+function timeAgo(dateStr) {
+  const diff = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
+  if (diff < 60)    return `${diff}s ago`;
+  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+// ── FETCH ──
+const SEARCH_QUERIES = [
+  'gpu+rtx+radeon+graphics',
+  'cpu+ryzen+intel+processor',
+  'ssd+nvme+ram+memory',
+  'gaming+pc+prebuilt+desktop',
+  'laptop+monitor+keyboard+mouse',
+  'newegg+microcenter+bestbuy+walmart',
+];
+const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const SD_BASE  = 'https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&rss=1&q=';
+
+async function fetchDeals() {
+  try {
+    const requests = SEARCH_QUERIES.map(q =>
+      fetch(`${RSS2JSON}${encodeURIComponent(SD_BASE + q)}`)
+        .then(r => r.json()).catch(() => ({ items: [] }))
+    );
+    const results = await Promise.all(requests);
+    const seen = new Set();
+    const fresh = [];
+
+    for (const data of results) {
+      if (data.status !== 'ok') continue;
+      for (const item of (data.items || [])) {
+        const id = item.guid || item.link;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        const rawTitle = decodeEntities(item.title || '');
+        const price = extractPrice(rawTitle, item.description);
+        fresh.push({
+          id, title: rawTitle, link: item.link,
+          thumbnail: item.thumbnail || '',
+          description: item.description || '',
+          pubDate: item.pubDate,
+          store: detectStore(rawTitle + ' ' + (item.description || '')),
+          category: detectCategory(rawTitle),
+          price, author: item.author || '',
+        });
+      }
+    }
+
+    allDeals = fresh;
+    initialLoaded = true;
+
+    const tickerText = allDeals.slice(0,20).map(d =>
+      `<b>${storeLabel[d.store]}</b> ${encodeHtml(d.title.substring(0,55))}${d.title.length>55?'...':''}`
+    ).join(' &nbsp;•&nbsp; ');
+    const t = document.getElementById('ticker');
+    t.innerHTML = tickerText + ' &nbsp;•&nbsp; ' + tickerText;
+
+    document.getElementById('lastUpdated').textContent =
+      'LIVE // ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+    const stale = document.getElementById('refreshFail');
+    if (stale) stale.remove();
+
+    renderDeals();
+    generateAISummary();
+  } catch(err) {
+    if (!initialLoaded) {
+      document.getElementById('dealGrid').innerHTML = `
+        <div class="state-box">
+          <div class="state-title">&gt; ERROR: FEED UNAVAILABLE</div>
+          <div class="state-sub">
+            Could not load deal feed. Check your internet connection.<br><br>
+            <a href="https://slickdeals.net/deals/computers-electronics/" target="_blank" rel="noopener noreferrer">
+              &gt; BROWSE SLICKDEALS DIRECTLY →
+            </a>
+          </div>
+        </div>`;
+    } else {
+      const toast = document.createElement('div');
+      toast.id = 'refreshFail';
+      toast.className = 'refresh-fail';
+      toast.textContent = '⚠ REFRESH FAILED — showing cached deals';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+  }
+}
+
+// ── AI FEATURE 1: FEED SUMMARY ──
+async function generateAISummary() {
+  const bar = document.getElementById('aiSummaryBar');
+  const txt = document.getElementById('aiSummaryText');
+  bar.style.display = 'block';
+  txt.className = 'loading';
+  txt.textContent = '> Scanning deals...';
+
+  // Build a compact deal list for the prompt (top 30 by recency)
+  const top = allDeals.slice(0, 30);
+  const dealList = top.map((d,i) =>
+    `${i+1}. [${storeLabel[d.store]}] ${d.title}${d.price ? ' ($'+d.price+')' : ''}`
+  ).join('\n');
+
+  const prompt = `You are a PC deals analyst. Here are the current live deals from Slickdeals:\n\n${dealList}\n\nWrite a single short paragraph (2-3 sentences max) summarizing what's hot right now. Mention specific standout deals, which categories are active, and any notable stores. Be direct and useful. No fluff.`;
+
+  try {
+    const response = await puter.ai.chat(prompt, { model: 'gpt-5.4-nano' });
+    const text = typeof response === 'string' ? response : response?.message?.content?.[0]?.text || response?.toString() || '';
+    txt.className = '';
+    txt.textContent = text.trim();
+  } catch(e) {
+    txt.className = '';
+    txt.textContent = 'AI summary unavailable — sign in to Puter to enable AI features.';
+  }
+}
+
+// ── AI FEATURE 2: DEAL EXPLAINER (per card) ──
+async function analyzeDeal(dealId, btn) {
+  const deal = allDeals.find(d => d.id === dealId);
+  if (!deal) return;
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  const resultEl = document.getElementById('ai-result-' + CSS.escape(dealId));
+  resultEl.className = 'card-ai-result loading';
+  resultEl.innerHTML = '<div class="ai-result-label">🤖 AI ANALYSIS //</div>> Analyzing deal...';
+
+  const prompt = `You are a PC hardware expert helping a young gamer find good deals. Analyze this deal:\n\n"${deal.title}"${deal.price ? '\nPrice: $' + deal.price : ''}\n\nIn 3-4 sentences: explain what this product is in plain English, whether the price is good, any gotchas to watch out for (like mail-in rebates, open box, or limited time), and a simple verdict: BUY, WAIT, or SKIP. Be direct and helpful.`;
+
+  try {
+    const response = await puter.ai.chat(prompt, { model: 'gpt-5.4-nano' });
+    const text = typeof response === 'string' ? response : response?.message?.content?.[0]?.text || response?.toString() || '';
+    resultEl.className = 'card-ai-result done';
+    resultEl.innerHTML = `<div class="ai-result-label">🤖 AI ANALYSIS //</div>${encodeHtml(text.trim()).replace(/\n/g,'<br>')}`;
+  } catch(e) {
+    resultEl.className = 'card-ai-result done';
+    resultEl.innerHTML = '<div class="ai-result-label">🤖 AI ANALYSIS //</div>Sign in to Puter to enable AI deal analysis.';
+  }
+
+  btn.textContent = '🤖 DONE';
+}
+
+// ── AI FEATURE 3: BUILD ADVISOR ──
+document.getElementById('advisorToggle').addEventListener('click', () => {
+  const panel = document.getElementById('advisorPanel');
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) document.getElementById('advisorInput').focus();
+});
+
+document.getElementById('advisorSubmit').addEventListener('click', runBuildAdvisor);
+document.getElementById('advisorInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runBuildAdvisor();
+});
+
+async function runBuildAdvisor() {
+  const input = document.getElementById('advisorInput').value.trim();
+  if (!input) return;
+
+  const submitBtn = document.getElementById('advisorSubmit');
+  const resultEl  = document.getElementById('advisorResult');
+
+  submitBtn.disabled = true;
+  resultEl.className = 'loading';
+  resultEl.innerHTML = '> Scanning current deals against your goal...';
+
+  const dealList = allDeals.slice(0, 50).map((d,i) =>
+    `${i+1}. [${storeLabel[d.store]}] ${d.title}${d.price ? ' — $'+d.price : ''} (${d.category})`
+  ).join('\n');
+
+  const prompt = `You are a PC build advisor. The user's goal: "${input}"\n\nCurrent live deals:\n${dealList}\n\nBased on their goal, identify the most relevant deals from the list above. Give a practical recommendation: which specific deals match, why they're a good fit, and any important caveats. If no deals match well, say so honestly. Be concise and specific — reference actual deal titles from the list.`;
+
+  try {
+    const response = await puter.ai.chat(prompt, { model: 'gpt-5.4-nano' });
+    const text = typeof response === 'string' ? response : response?.message?.content?.[0]?.text || response?.toString() || '';
+    resultEl.className = 'done';
+    resultEl.innerHTML = encodeHtml(text.trim()).replace(/\n/g, '<br>');
+  } catch(e) {
+    resultEl.className = 'done';
+    resultEl.innerHTML = 'Sign in to Puter.com (free) to enable the AI Build Advisor.';
+  }
+
+  submitBtn.disabled = false;
+}
+
+// ── RENDER ──
+function renderDeals() {
+  let deals = [...allDeals];
+  if (activeFilter !== 'all') deals = deals.filter(d => d.category === activeFilter);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    deals = deals.filter(d => d.title.toLowerCase().includes(q) || storeLabel[d.store].toLowerCase().includes(q));
+  }
+  if (activeSort === 'new')   deals.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+  if (activeSort === 'price') deals.sort((a,b) => {
+    if (a.price === null && b.price === null) return 0;
+    if (a.price === null) return 1;
+    if (b.price === null) return -1;
+    return a.price - b.price;
+  });
+
+  const grid  = document.getElementById('dealGrid');
+  const count = document.getElementById('resultCount');
+  count.innerHTML = `<strong>${deals.length}</strong> DEALS FOUND // FILTER: ${activeFilter.toUpperCase()}`;
+
+  if (!deals.length) {
+    grid.innerHTML = `<div class="state-box"><div class="state-title">&gt; NO RESULTS</div><div class="state-sub">Try a different category or clear the search.</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = deals.map(d => {
+    const safeId = d.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const priceHtml = d.price != null
+      ? `<div class="card-price">$${d.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`
+      : `<div class="card-price no-price">See deal for price</div>`;
+
+    const thumbHtml = d.thumbnail
+      ? `<div class="card-thumb-wrap"><img class="card-thumb" src="${encodeHtml(d.thumbnail)}" alt="" loading="lazy"
+           onerror="this.parentElement.innerHTML='<span class=\\'card-thumb-placeholder\\'>💻</span>'"></div>`
+      : `<div class="card-thumb-wrap"><span class="card-thumb-placeholder">💻</span></div>`;
+
+    return `
+    <a class="card" href="${encodeHtml(d.link)}" target="_blank" rel="noopener noreferrer">
+      ${thumbHtml}
+      <div class="card-body">
+        <div class="card-top">
+          <span class="store-badge store-${d.store}">${storeLabel[d.store]}</span>
+          <span class="card-age">${timeAgo(d.pubDate)}</span>
+        </div>
+        <div class="card-title">${encodeHtml(d.title)}</div>
+        ${priceHtml}
+        <div class="card-actions">
+          <div class="card-link">&gt; VIEW_DEAL.EXE →</div>
+          <button class="ai-btn" id="ai-btn-${safeId}"
+            onclick="event.preventDefault(); event.stopPropagation(); analyzeDeal('${d.id.replace(/'/g,"\\'")}', this)">
+            🤖 ANALYZE
+          </button>
+        </div>
+        <div class="card-ai-result" id="ai-result-${safeId}"></div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+// ── EVENTS ──
+document.querySelectorAll('.filter-btn').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderDeals();
+  })
+);
+document.querySelectorAll('.sort-btn').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeSort = btn.dataset.sort;
+    renderDeals();
+  })
+);
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { searchQuery = e.target.value.trim(); renderDeals(); }, 250);
+});
+
+setInterval(fetchDeals, 5 * 60 * 1000);
+</script>
+</body>
+</html>
