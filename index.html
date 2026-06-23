@@ -198,8 +198,21 @@
       margin-top: 12px; font-size: 13px; color: var(--dim);
       line-height: 1.7; display: none; border-top: 1px solid var(--border); padding-top: 12px;
     }
-    #advisorResult.loading { color: var(--muted); animation: pulse 1.5s ease-in-out infinite; display: block; }
     #advisorResult.done { display: block; color: var(--glow); }
+
+    /* Web search loading state — cycling status lines */
+    .advisor-searching { display: block; padding-top: 12px; border-top: 1px solid var(--border); }
+    .search-status-line {
+      font-size: 12px; color: var(--muted); margin: 4px 0;
+      opacity: 0; transition: opacity 0.4s ease;
+    }
+    .search-status-line.active { color: var(--glow); opacity: 1; }
+    .search-status-line.done-line { color: var(--dim); opacity: 0.5; }
+    .search-progress { margin-top: 10px; height: 2px; background: var(--border); overflow: hidden; }
+    .search-progress-bar {
+      height: 100%; width: 0%; background: var(--purple);
+      box-shadow: 0 0 8px var(--purple); transition: width 0.8s ease;
+    }
 
     /* ── GRID ── */
     .grid { max-width: 1200px; margin: 16px auto 40px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
@@ -323,7 +336,7 @@
   <div class="header-inner">
     <div class="logo">
       <div class="logo-main">PC<span>DEALS</span></div>
-      <div class="logo-sub">// NERD MODE + AI ACTIVATED //</div>
+      <div class="logo-sub">// NERD MODE + AI + WEB SEARCH //</div>
     </div>
     <div class="search-wrap">
       <span class="search-prefix">&gt;_</span>
@@ -381,10 +394,10 @@
 <!-- BUILD ADVISOR PANEL -->
 <div id="advisorPanel">
   <div class="advisor-inner">
-    <div class="advisor-title">🤖 AI BUILD ADVISOR // Tell me what you want to build or buy</div>
+    <div class="advisor-title">🤖 AI BUILD ADVISOR // Searches the web live for current deals</div>
     <div class="advisor-input-row">
       <input type="text" id="advisorInput"
-        placeholder="e.g. I want a 1440p gaming PC under $900, or best GPU deal right now" />
+        placeholder="e.g. best GPU under $400 right now, or 1440p gaming PC under $900" />
       <button id="advisorSubmit">ANALYZE &gt;&gt;</button>
     </div>
     <div id="advisorResult"></div>
@@ -418,6 +431,7 @@ const bootLines = [
   { text: 'Hallucination filter: ENABLED', cls: 'ok' },
   { text: 'Fake price detector: ENABLED', cls: 'ok' },
   { text: 'Puter.js AI engine: ONLINE', cls: 'ok' },
+  { text: 'Web search tool: ENABLED', cls: 'ok' },
   { text: 'Stores: Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, HP, Alienware + more', cls: 'ok' },
   { text: 'Nerd mode assets loaded \uD83E\uDD13', cls: 'ok' },
   { text: "Deal tracker ready \u2014 let's find some deals", cls: 'ok' },
@@ -694,23 +708,87 @@ async function runBuildAdvisor() {
   const resultEl  = document.getElementById('advisorResult');
 
   submitBtn.disabled = true;
-  resultEl.className = 'loading';
-  resultEl.innerHTML = '> Scanning current deals against your goal...';
 
-  const dealList = allDeals.slice(0, 50).map((d,i) =>
-    `${i+1}. [${storeLabel[d.store]}] ${d.title}${d.price ? ' — $'+d.price : ''} (${d.category})`
+  // ── Cycling status messages while web search runs ──
+  const statusSteps = [
+    '> Parsing your build goal...',
+    '> Searching Newegg for current deals...',
+    '> Checking Best Buy sale prices...',
+    '> Scanning Amazon listings...',
+    '> Checking Microcenter bundles...',
+    '> Cross-referencing price trackers...',
+    '> Analyzing value vs your budget...',
+    '> Building your recommendation...',
+  ];
+
+  resultEl.className = '';
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div class="advisor-searching" id="searchingState">
+      ${statusSteps.map((s,i) => `<div class="search-status-line" id="sstep-${i}">${s}</div>`).join('')}
+      <div class="search-progress"><div class="search-progress-bar" id="searchBar"></div></div>
+    </div>`;
+
+  // Animate the status lines while the API call runs
+  let stepIndex = 0;
+  const bar = document.getElementById('searchBar');
+  const stepInterval = setInterval(() => {
+    // Mark previous as done
+    if (stepIndex > 0) {
+      const prev = document.getElementById(`sstep-${stepIndex - 1}`);
+      if (prev) { prev.classList.remove('active'); prev.classList.add('done-line'); }
+    }
+    const curr = document.getElementById(`sstep-${stepIndex}`);
+    if (curr) curr.classList.add('active');
+    if (bar) bar.style.width = ((stepIndex + 1) / statusSteps.length * 85) + '%';
+    stepIndex++;
+    if (stepIndex >= statusSteps.length) clearInterval(stepInterval);
+  }, 2000);
+
+  // Build prompt — include our live feed AND instruct web search
+  const dealList = allDeals.slice(0, 30).map((d,i) =>
+    `${i+1}. [${storeLabel[d.store]}] ${d.title}${d.price ? ' — $'+d.price : ''}`
   ).join('\n');
 
-  const prompt = `You are a PC build advisor. The user's goal: "${input}"\n\nCurrent live deals:\n${dealList}\n\nBased on their goal, identify the most relevant deals from the list above. Give a practical recommendation: which specific deals match, why they're a good fit, and any important caveats. If no deals match well, say so honestly. Be concise and specific — reference actual deal titles from the list.`;
+  const prompt = `You are a PC build and deals advisor. The user's goal: "${input}"
+
+You have two sources of information:
+1. Our live deal feed (fetched minutes ago):
+${dealList}
+
+2. Your web search tool — use it to find current prices, sales, and deals at major retailers like Newegg, Best Buy, Amazon, Microcenter, and Walmart.
+
+Search the web for current deals matching the user's goal. Then combine what you find with the live feed above to give the best possible recommendation. Be specific: name exact products, prices, and stores. Flag any important caveats (rebates, open box, limited time). Give a clear verdict on what to buy right now.`;
 
   try {
-    const response = await puter.ai.chat(prompt, { model: 'gpt-5.4-nano' });
-    const text = typeof response === 'string' ? response : response?.message?.content?.[0]?.text || response?.toString() || '';
+    const response = await puter.ai.chat(prompt, {
+      model: 'gpt-5.4-nano',
+      tools: [{ type: 'web_search' }]
+    });
+
+    clearInterval(stepInterval);
+
+    // Parse response — Test 4 confirmed structure is response.message.content
+    const text = response?.message?.content
+      || (typeof response === 'string' ? response : '')
+      || response?.toString() || '';
+
+    if (bar) bar.style.width = '100%';
+    await new Promise(r => setTimeout(r, 300));
+
     resultEl.className = 'done';
-    resultEl.innerHTML = encodeHtml(text.trim()).replace(/\n/g, '<br>');
+    // Render markdown-ish: bold, links, line breaks
+    resultEl.innerHTML = encodeHtml(text.trim())
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--glow2)">$1</strong>')
+      .replace(/#{1,3} (.+?)(<br>|$)/g, '<span style="color:var(--cyan);font-size:13px;letter-spacing:0.05em">$1</span><br>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">$1</a>');
+
   } catch(e) {
+    clearInterval(stepInterval);
     resultEl.className = 'done';
-    resultEl.innerHTML = 'Sign in to Puter.com (free) to enable the AI Build Advisor.';
+    resultEl.innerHTML = 'Sign in to <a href="https://puter.com" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">Puter.com</a> (free) to enable the AI Build Advisor with live web search.';
   }
 
   submitBtn.disabled = false;
