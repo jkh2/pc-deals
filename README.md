@@ -1,6 +1,6 @@
 # 💻 PC Deal Tracker // NERD MODE
 
-A live PC parts deal tracker that pulls real, community-verified deals from [r/buildapcsales](https://reddit.com/r/buildapcsales) — no fake prices, no hallucinated links.
+A live PC parts deal tracker pulling real, community-verified deals from [Slickdeals.net](https://slickdeals.net) — real prices, real links, real product images. No fake data. No hallucinations.
 
 ![Nerd Mode](https://img.shields.io/badge/mode-NERD-00ff41?style=for-the-badge&labelColor=020c02)
 ![Live Data](https://img.shields.io/badge/data-LIVE-00ff41?style=for-the-badge&labelColor=020c02)
@@ -10,15 +10,16 @@ A live PC parts deal tracker that pulls real, community-verified deals from [r/b
 
 ## 🔥 Features
 
-- **Real live data** from r/buildapcsales — community members post and verify deals from all major retailers
-- **Store detection** — automatically identifies Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, HP, Alienware, and more
+- **Real live data** from Slickdeals.net — community members post and verify deals from all major retailers
+- **Product thumbnails** — actual images pulled from each deal listing
+- **Price extraction** — dollar amounts pulled directly from deal titles and displayed prominently
+- **Store detection** — automatically identifies Amazon, Best Buy, Newegg, Walmart, Microcenter, Costco, Dell, HP, Alienware, and more
 - **Filter by category** — GPU, CPU, RAM, SSD, Prebuilt, Monitor, Laptop, Cooling, PSU/Case, Motherboard, Peripherals
-- **Sort by** Hottest, Newest, or Most Discussed
+- **Sort by** Newest or Lowest Price
 - **Search bar** — hunt for specific parts instantly
-- **🔥 HOT badge** on anything with 500+ community upvotes
 - **Auto-refreshes** every 5 minutes — stays current without reloading
-- **CORS proxy fallback chain** — works locally AND on GitHub Pages
-- **Boot sequence** — because why not
+- **Works locally AND on GitHub Pages** — no server required
+- **CRT boot sequence** — because why not 🤓
 
 ---
 
@@ -39,53 +40,47 @@ A live PC parts deal tracker that pulls real, community-verified deals from [r/b
 
 ### Option 2 — Run Locally
 
-Just open `pc-deal-tracker.html` in your browser. The app will automatically route through a CORS proxy to fetch live Reddit data even from a local file.
+Just open `pc-deal-tracker.html` in your browser. No build step, no server, no dependencies.
 
 ---
 
 ## 🏗️ How It Works
 
-This is a **single-file HTML app** — no build step, no dependencies, no server required.
+This is a **single-file HTML app** — no frameworks, no build tools, no backend.
 
 ```
 pc-deal-tracker.html
-├── CSS          — Terminal/CRT aesthetic, scanlines, green phosphor glow
-├── Boot screen  — Fake BIOS sequence on load
-├── Fetch logic  — Direct Reddit API → proxy fallbacks if needed
-├── Store detect — Scans post title + URL to identify retailer
-├── Category     — Regex-based component classification
-└── Render       — Filter, sort, search, display
+├── CSS            — Terminal/CRT aesthetic, scanlines, green phosphor glow
+├── Boot screen    — Fake BIOS sequence on load
+├── Fetch logic    — Slickdeals RSS → rss2json.com → parsed JSON with CORS headers
+├── Store detect   — Scans post title + description to identify retailer
+├── Category       — Regex-based component classification
+├── Price extract  — Pulls $ amounts from deal titles
+└── Render         — Filter, sort, search, display with thumbnails
 ```
 
-### Why r/buildapcsales?
+### Why Slickdeals?
 
-Most major retailers (Amazon, Best Buy, Newegg, etc.) don't offer free public APIs for deal/price data, and they actively block scrapers. r/buildapcsales is a community of PC builders who manually post and verify deals from all those stores — it's essentially a free, human-curated deal feed covering every retailer on the list.
+Reddit's API (`r/buildapcsales`) was the original data source, but Reddit locked it down in 2024-2025 — all requests return 403 regardless of proxies or headers. Slickdeals is actually a better fit: it's a dedicated deal community that covers every major PC retailer (Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, Alienware, and more), posts real prices, and provides a public RSS feed.
 
-### CORS Proxy Chain
+### Why rss2json.com?
 
-When running locally (`file://`), browsers block cross-origin requests. The app tries four methods in order:
-
-1. **Direct fetch** — works on GitHub Pages / any hosted domain
-2. **corsproxy.io** — free proxy fallback
-3. **allorigins.win** — secondary fallback  
-4. **cors-anywhere** — last resort
-
-On GitHub Pages, method #1 succeeds and proxies are never used.
+Slickdeals provides an RSS feed but not a JSON API with CORS headers. [rss2json.com](https://api.rss2json.com) converts any public RSS feed to JSON and serves it with proper CORS headers, so the app works from any origin — local file or hosted domain — with no backend required. The free tier is sufficient for this use case.
 
 ---
 
 ## 🛠️ Customization
 
-Want to tweak it? Everything is in one file — `pc-deal-tracker.html`.
+Everything lives in one file — `pc-deal-tracker.html`.
 
 | What to change | Where to find it |
 |---|---|
 | Color scheme | `:root` CSS variables at the top |
 | Boot messages | `bootLines` array in the `<script>` |
+| Search queries | `SEARCH_QUERIES` array |
 | Category filters | `detectCategory()` function |
 | Store detection | `detectStore()` function |
 | Refresh interval | `setInterval(fetchDeals, 5 * 60 * 1000)` |
-| Hot deal threshold | `d.score >= 500` in `renderDeals()` |
 
 ---
 
@@ -102,9 +97,10 @@ pc-deals/
 ## 🤓 Built With
 
 - Vanilla HTML, CSS, JavaScript — zero frameworks
-- [Reddit JSON API](https://www.reddit.com/r/buildapcsales/hot.json) — public, no key required
+- [Slickdeals RSS](https://slickdeals.net) — public deal feed, community verified
+- [rss2json.com](https://api.rss2json.com) — RSS to JSON with CORS headers
 - [Orbitron](https://fonts.google.com/specimen/Orbitron) + [Share Tech Mono](https://fonts.google.com/specimen/Share+Tech+Mono) — Google Fonts
-- Terminal green aesthetic — because nerds deserve nice things
+- Terminal green CRT aesthetic — because nerds deserve nice things
 
 ---
 
