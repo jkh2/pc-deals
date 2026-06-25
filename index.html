@@ -572,6 +572,15 @@ function encodeHtml(s) {
 function decodeEntities(s) {
   return (s||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
 }
+
+// Extract thumbnail from content/description HTML since rss2json doesn't populate thumbnail field for Slickdeals
+function extractThumbnail(thumbnail, description, content) {
+  if (thumbnail) return thumbnail;
+  // Image is usually in the content field for Slickdeals
+  const combined = (content || '') + (description || '');
+  const match = combined.match(/src="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp|gif|thumb)[^"]*)"/i);
+  return match ? match[1] : '';
+}
 function timeAgo(dateStr) {
   const diff = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
   if (diff < 60)    return `${diff}s ago`;
@@ -625,7 +634,7 @@ async function fetchDeals() {
         const price = extractPrice(rawTitle, item.description);
         fresh.push({
           id, title: rawTitle, link: item.link,
-          thumbnail: item.thumbnail || '',
+          thumbnail: extractThumbnail(item.thumbnail || '', item.description || '', item.content || ''),
           description: item.description || '',
           pubDate: item.pubDate,
           store: detectStore(rawTitle + ' ' + (item.description || '')),
