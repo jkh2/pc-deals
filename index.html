@@ -521,6 +521,9 @@ function detectCategory(title) {
   if (/\b(fire tv|fire stick|roku|apple tv|chromecast|streaming stick|android tv)\b/.test(t)) return 'smarthome';
   if (/\b(webcam|capture card|stream deck)\b/.test(t))                             return 'audio';
   if (/\b(cpu cooler|pc cooler|cpu fan|aio cooler|liquid cooler|water cooler|air cooler|heatsink|liquid cool|water cool|thermal paste|noctua|be quiet|arctic freezer|deepcool|scythe)\b/.test(t)) return 'cooling';
+  // Mobo bundles — check BEFORE cpu/gpu/ram steal bundle titles
+  // Note: am4/am5/lga alone can appear on CPUs so require MB-specific context
+  if (/\b(motherboard|mobo\b)\b/i.test(t) || /\bmb\b/.test(t) || /\b(aorus elite|aorus pro|aorus master|prime b\d|tuf gaming b\d|rog strix b\d|rog maximus|pro b\d|msi pro b|msi mag b|b\d{3}[a-z][-\s]|x\d{3}[a-z][-\s]|z\d{3}[a-z][-\s])\b/i.test(t)) return 'mobo';
   // Prebuilt BEFORE gpu — a prebuilt with RTX is still a prebuilt
   if (/\b(prebuilt|pre-built|pre built|desktop pc|gaming pc|gaming desktop|mini pc|nuc|cyberpower|ibuypower|skytech|alienware aurora|omen desktop|legion tower)\b/.test(t)) return 'prebuilt';
   // Laptop BEFORE gpu/cpu/ram — a gaming laptop is still a laptop
@@ -615,6 +618,7 @@ const SEARCH_QUERIES = [
   'mechanical+keyboard',
   'wifi+router',
   'wireless+headphones+earbuds',
+  'cpu+cooler',
   'smart+tv',
   'smartwatch+fitness+tracker',
   'gaming+mouse',
@@ -623,6 +627,8 @@ const SEARCH_QUERIES = [
   'smart+home+alexa+echo',
   'external+hard+drive',
   '3d+printer',
+  'pc+cooling+heatsink',
+  'motherboard+bundle',
 ];
 const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const SD_BASE  = 'https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&rss=1&q=';
