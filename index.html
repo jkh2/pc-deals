@@ -418,7 +418,7 @@
   LIVE DATA &mdash; <a href="https://slickdeals.net" target="_blank" rel="noopener noreferrer">Slickdeals.net</a>
   &nbsp;//&nbsp; AI POWERED BY <a href="https://puter.com" target="_blank" rel="noopener noreferrer">PUTER.JS</a>
   &nbsp;//&nbsp; REAL PRICES &nbsp;//&nbsp; REAL LINKS
-  <br><span style="color:var(--muted);font-size:10px;">Built by Tyler Williams in Collaboration with Sentinel AI Systems 2026 &nbsp;•&nbsp; FORK IT ON GITHUB</span>
+  <br><span style="color:var(--muted);font-size:10px;">BUILT BY TYLER D. WILLIAMS in collaboration with SENTINEL AI SYSTEMS &nbsp;•&nbsp; FORK IT ON GITHUB</span>
 </footer>
 </div>
 
@@ -600,61 +600,70 @@ function renderMarkdown(raw) {
 }
 
 // ── FETCH ──
+// These queries are proven to return real tech deals from Slickdeals.
+// Fired sequentially with 300ms delays to avoid rss2json rate limits.
 const SEARCH_QUERIES = [
-  'gpu+rtx+radeon+graphics+card',
-  'cpu+ryzen+intel+processor',
-  'ssd+nvme+ram+memory+ddr5',
-  'gaming+pc+prebuilt+desktop',
-  'laptop+monitor+keyboard+mouse+headset',
-  'pc+computer+gaming+hardware+tech',
+  'gaming+pc+prebuilt',
+  'graphics+card',
+  'gaming+monitor',
+  'nvme+ssd',
+  'mechanical+keyboard',
+  'wifi+router',
+  'wireless+headphones+earbuds',
+  'gaming+laptop',
+  'smart+tv',
+  'smartwatch+fitness+tracker',
+  'gaming+mouse',
+  'tablet+ipad',
+  'drone+camera',
+  'smart+home+alexa+echo',
+  'external+hard+drive',
+  '3d+printer',
 ];
 const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const SD_BASE  = 'https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&rss=1&q=';
 
 // ── PC/TECH FILTER — three-tier approach ──
-// Tier 1: Brands — companies that primarily make tech. Match = almost certainly tech.
-const _BRANDS = /nvidia|amd\b|intel\b|qualcomm|rtx\b|geforce|radeon|ryzen|core i[3-9]|xeon|celeron|threadripper|asus\b|gigabyte|msi\b|evga\b|zotac|sapphire\b|powercolor|xfx\b|corsair|kingston|crucial\b|g\.skill|teamgroup|samsung\b|lg\b|sony\b|panasonic|toshiba|hisense|tcl\b|vizio\b|seagate|western digital|wd\b|sandisk|lexar\b|pny\b|logitech|razer\b|steelseries|hyperx|roccat|glorious\b|zowie\b|bose\b|sennheiser|audio-technica|jabra\b|beyerdynamic|shure\b|rode\b|focusrite|anker\b|belkin\b|ugreen\b|baseus\b|tp-link|netgear|linksys|ubiquiti|eero\b|orbi\b|synology|qnap\b|alienware|microsoft surface|razer blade|airpods|apple watch|dji\b|gopro\b|insta360|noctua\b|be quiet\b|arctic\b|deepcool|scythe\b|cooler master|thermaltake|lian li|fractal\b|nzxt\b|phanteks|silverstone|benq\b|viewsonic|aoc\b|lg ultragear|samsung odyssey|elgato\b|wacom\b|huion\b|xp-pen|raspberry pi|arduino\b|bambu lab|prusa\b|creality|elegoo\b|turtle beach|astro gaming|sabrent\b|wd black|wd blue|wd red|seasonic|be quiet\b|fractal design|evga\b/i;
-
-// Tier 2: Specs — technical specs that only appear on tech products
-const _SPECS = /rtx \d|rx \d{3,4}|arc \w+|ddr[3-5]\b|lpddr[45]|nvme\b|m\.2\b|pcie\b|sata\b|\d+hz\b|1080p|1440p|2160p|4k uhd|4k tv|\b8k\b|qhd\b|fhd\b|wifi [56]|wi-fi [56]|ax\d{4}|802\.11|usb-c|usb 3\.|thunderbolt [34]|usb4\b|lga\d{4}|am[45]\b|\d+gb vram|\d+gb ram|\d+tb ssd|\d+gb ssd|\d+tb hdd|\d+w psu|80\+ gold|80\+ platinum|80\+ titanium|amoled\b|mini-led|qled\b|magsafe\b|atx\b|itx\b|matx\b|e-atx|ip[56][567]\b/i;
-
-// Tier 3: Categories — specific enough product nouns that won't false-positive
-const _CATS = /graphics card|video card|\bgpu\b|\bcpu\b|solid state drive|hard drive|flash drive|thumb drive|usb drive|\bsd card\b|microsd\b|external ssd|external hdd|motherboard|\bmobo\b|power supply|gaming pc|desktop pc|mini pc|prebuilt\b|gaming desktop|gaming laptop|\blaptop\b|\bnotebook\b|\bchromebook\b|\bultrabook\b|gaming monitor|curved monitor|ultrawide\b|mechanical keyboard|gaming keyboard|wireless keyboard|gaming mouse|wireless mouse|ergonomic mouse|gaming headset|wireless headset|noise cancelling|noise-cancelling|\btrue wireless\b|\bearbuds\b|in-ear headphone|\bwebcam\b|studio mic|condenser mic|\busb mic\b|cpu cooler|pc cooler|liquid cooler|aio cooler|water cooling|air cooler|\bheatsink\b|thermal paste|pc case|tower case|mid tower|full tower|mini itx case|desktop case|gaming case|smart tv|oled tv|qled tv|\bwifi router\b|mesh wifi|mesh network|wireless router|\baccess point\b|network switch|ethernet switch|smart plug|smart bulb|smart lock|smart home hub|video doorbell|ring doorbell|ring camera|nest thermostat|streaming stick|fire stick|fire tv\b|apple tv\b|\bchromecast\b|\broku\b|action camera|\bdash cam\b|\bdashcam\b|\bdrone\b|\bquadcopter\b|vr headset|mixed reality|\bsmartwatch\b|fitness tracker|drawing tablet|graphics tablet|3d printer|resin printer|\bdev board\b|single board computer|power bank|portable charger|\busb hub\b|docking station|kvm switch|\bprojector\b|\be-reader\b|\bkindle\b|smart speaker|bluetooth speaker|surge protector|ups battery|hdmi cable|displayport cable|\bnas\b|network storage|stream deck|capture card|ethernet cable|\bmacbook\b|\biphone\b|\bipad\b|google home|echo dot|echo show/i;
-
-// A deal passes if it matches ANY tier
+const _BRANDS = /nvidia|amd\b|intel\b|qualcomm|rtx\b|geforce|radeon|ryzen|core i[3-9]|xeon|celeron|threadripper|asus\b|gigabyte|msi\b|evga\b|zotac|sapphire\b|powercolor|xfx\b|corsair|kingston|crucial\b|g\.skill|teamgroup|samsung\b|lg\b|sony\b|panasonic|toshiba|hisense|tcl\b|vizio\b|seagate|western digital|wd\b|sandisk|lexar\b|pny\b|logitech|razer\b|steelseries|hyperx|roccat|glorious\b|zowie\b|bose\b|sennheiser|audio-technica|jabra\b|beyerdynamic|shure\b|rode\b|focusrite|anker\b|belkin\b|ugreen\b|baseus\b|tp-link|netgear|linksys|ubiquiti|eero\b|orbi\b|synology|qnap\b|alienware|razer blade|airpods|apple watch|macbook|iphone|ipad\b|dji\b|gopro\b|insta360|noctua\b|be quiet\b|arctic\b|deepcool|scythe\b|cooler master|thermaltake|lian li|fractal\b|nzxt\b|phanteks|silverstone|benq\b|viewsonic|aoc\b|lg ultragear|samsung odyssey|elgato\b|wacom\b|huion\b|xp-pen|raspberry pi|arduino\b|bambu lab|prusa\b|creality|elegoo\b|turtle beach|astro gaming|sabrent\b|wd black|wd blue|wd red|seasonic|fractal design|evga\b|lenovo\b|acer\b|dell\b|hp pavilion|hp envy|hp omen|hp spectre|microsoft surface|xbox\b|steam deck|nintendo switch|playstation|echo dot|echo show|fire tv|fire stick|kindle\b|ring doorbell|ring camera|nest thermostat|google pixel|google nest|google home|meta quest|oculus\b/i;
+const _SPECS  = /rtx \d|rx \d{3,4}|arc \w+|ddr[3-5]\b|lpddr[45]|nvme\b|m\.2\b|pcie\b|sata\b|\d+hz\b|1080p|1440p|2160p|4k uhd|4k tv|\b8k\b|qhd\b|fhd\b|wifi [56]|wi-fi [56]|ax\d{4}|802\.11|usb-c|usb 3\.|thunderbolt [34]|usb4\b|lga\d{4}|am[45]\b|\d+gb vram|\d+gb ram|\d+tb ssd|\d+gb ssd|\d+tb hdd|\d+w psu|80\+ gold|80\+ platinum|80\+ titanium|amoled\b|mini-led|qled\b|magsafe\b|atx\b|itx\b|matx\b|e-atx|ip[56][567]\b|\d+mah\b|\d+w charger|\bips\b|\bva panel\b|\bips touch\b/i;
+const _CATS   = /graphics card|video card|\bgpu\b|\bcpu\b|solid state drive|hard drive|flash drive|thumb drive|usb drive|\bsd card\b|microsd\b|external ssd|external hdd|motherboard|\bmobo\b|power supply|gaming pc|desktop pc|mini pc|prebuilt\b|gaming desktop|gaming laptop|\blaptop\b|\bnotebook\b|\bchromebook\b|\bultrabook\b|gaming monitor|curved monitor|ultrawide\b|mechanical keyboard|gaming keyboard|wireless keyboard|gaming mouse|wireless mouse|ergonomic mouse|gaming headset|wireless headset|noise cancelling|noise-cancelling|\btrue wireless\b|\bearbuds\b|\bwebcam\b|studio mic|condenser mic|\busb mic\b|cpu cooler|pc cooler|liquid cooler|aio cooler|water cooling|air cooler|\bheatsink\b|thermal paste|pc case|tower case|mid tower|full tower|mini itx case|desktop case|gaming case|smart tv|oled tv|qled tv|\bwifi router\b|mesh wifi|mesh network|wireless router|\baccess point\b|network switch|ethernet switch|smart plug|smart bulb|smart lock|smart home hub|video doorbell|streaming stick|action camera|\bdash cam\b|\bdashcam\b|\bdrone\b|\bquadcopter\b|vr headset|mixed reality|\bsmartwatch\b|fitness tracker|drawing tablet|graphics tablet|3d printer|resin printer|\bdev board\b|single board computer|power bank|portable charger|\busb hub\b|docking station|kvm switch|\bprojector\b|\be-reader\b|smart speaker|bluetooth speaker|surge protector|ups battery|hdmi cable|displayport cable|\bnas\b|network storage|stream deck|capture card|ethernet cable|air duster|electric duster|compressed air|gaming console|video game\b|pc game\b/i;
 const PC_KEYWORDS = { test: (s) => _BRANDS.test(s) || _SPECS.test(s) || _CATS.test(s) };
 
 async function fetchDeals() {
-  try {
-    const requests = SEARCH_QUERIES.map(q =>
-      fetch(`${RSS2JSON}${encodeURIComponent(SD_BASE + q)}`)
-        .then(r => r.json()).catch(() => ({ items: [] }))
-    );
-    const results = await Promise.all(requests);
-    const seen = new Set();
-    const fresh = [];
+  const seen  = new Set();
+  const fresh = [];
 
-    for (const data of results) {
+  for (const q of SEARCH_QUERIES) {
+    try {
+      const data = await fetch(`${RSS2JSON}${encodeURIComponent(SD_BASE + q)}`).then(r => r.json());
       if (data.status !== 'ok') continue;
+
       for (const item of (data.items || [])) {
         const id = item.guid || item.link;
         if (seen.has(id)) continue;
         seen.add(id);
+
         const rawTitle = decodeEntities(item.title || '');
-        if (!PC_KEYWORDS.test(rawTitle) && !PC_KEYWORDS.test(item.description || '')) continue;
+        const combined = rawTitle + ' ' + (item.description || '') + ' ' + (item.content || '');
+        if (!PC_KEYWORDS.test(combined)) continue;
+
         const price = extractPrice(rawTitle, item.description);
         fresh.push({
           id, title: rawTitle, link: item.link,
           thumbnail: extractThumbnail(item.thumbnail || '', item.description || '', item.content || ''),
           description: item.description || '',
           pubDate: item.pubDate,
-          store: detectStore(rawTitle + ' ' + (item.description || '')),
+          store:    detectStore(combined),
           category: detectCategory(rawTitle),
           price,
         });
       }
-    }
+    } catch(_) {}
+    // 300ms between requests avoids rss2json rate limits
+    await new Promise(r => setTimeout(r, 300));
+  }
 
+  try {
     allDeals = fresh;
     initialLoaded = true;
 
@@ -672,7 +681,6 @@ async function fetchDeals() {
 
     renderDeals();
 
-    // Fix 1: only generate AI summary on first load, not every refresh
     if (!aiSummaryDone) {
       aiSummaryDone = true;
       generateAISummary();
