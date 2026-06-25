@@ -418,7 +418,7 @@
   LIVE DATA &mdash; <a href="https://slickdeals.net" target="_blank" rel="noopener noreferrer">Slickdeals.net</a>
   &nbsp;//&nbsp; AI POWERED BY <a href="https://puter.com" target="_blank" rel="noopener noreferrer">PUTER.JS</a>
   &nbsp;//&nbsp; REAL PRICES &nbsp;//&nbsp; REAL LINKS
-  <br><span style="color:var(--muted);font-size:10px;">BUILT BY TYLER D. WILLIAMS in collaboration with SENTINEL AI SYSTEMS &nbsp;•&nbsp; FORK IT ON GITHUB</span>
+  <br><span style="color:var(--muted);font-size:10px;">BUILT BY TYLER D. WILLIAMS IN COLLABORATION WITH SENTINEL AI SYSTEMS &nbsp;•&nbsp; FORK IT ON GITHUB</span>
 </footer>
 </div>
 
@@ -521,13 +521,16 @@ function detectCategory(title) {
   if (/\b(fire tv|fire stick|roku|apple tv|chromecast|streaming stick|android tv)\b/.test(t)) return 'smarthome';
   if (/\b(webcam|capture card|stream deck)\b/.test(t))                             return 'audio';
   if (/\b(cpu cooler|pc cooler|cpu fan|aio cooler|liquid cooler|water cooler|air cooler|heatsink|liquid cool|water cool|thermal paste|noctua|be quiet|arctic freezer|deepcool|scythe)\b/.test(t)) return 'cooling';
+  // Prebuilt BEFORE gpu — a prebuilt with RTX is still a prebuilt
+  if (/\b(prebuilt|pre-built|pre built|desktop pc|gaming pc|gaming desktop|mini pc|nuc|cyberpower|ibuypower|skytech|alienware aurora|omen desktop|legion tower)\b/.test(t)) return 'prebuilt';
+  // Laptop BEFORE gpu/cpu/ram — a gaming laptop is still a laptop
+  if (/\b(laptop|notebook|chromebook|macbook|ultrabook|thinkpad|ideapad|zenbook|vivobook|gaming laptops|helios|predator laptop|katana|raider \d|zephyrus|strix scar|rog flow|rog strix g|swift x|nitro \d|aspire \d|inspiron \d|pavilion \d|envy \d|spectre x|yoga \d|flex \d)\b/.test(t)) return 'laptop';
   if (/\b(rtx|rx \d|arc |radeon|geforce|gpu|graphics card|video card)\b/.test(t)) return 'gpu';
   if (/\b(ryzen|intel core|i[3579]-\d|cpu|processor|xeon)\b/.test(t))             return 'cpu';
   if (/\b(ddr[3-5]|\bram\b|dimm|sodimm)\b/.test(t))                               return 'ram';
   if (/\b(ssd|nvme|hdd|hard drive|m\.2|\bstorage\b|flash drive|thumb drive|usb drive|sd card|microsd)\b/.test(t)) return 'ssd';
-  if (/\b(prebuilt|pre-built|pre built|desktop pc|gaming pc|gaming desktop|mini pc|nuc)\b/.test(t)) return 'prebuilt';
   if (/\b(monitor|display|1080p|1440p|2160p|\b4k\b|\b8k\b|144hz|165hz|240hz|360hz|oled screen|qled)\b/.test(t)) return 'monitor';
-  if (/\b(laptop|notebook|chromebook|macbook|ultrabook|thinkpad|ideapad|zenbook)\b/.test(t)) return 'laptop';
+  if (/\b(laptop|notebook|chromebook|macbook|ultrabook|thinkpad|ideapad|zenbook)\b/.test(t))                    return 'laptop';
   if (/\b(psu|power supply|\bcase\b|chassis|atx case|itx case|matx)\b/.test(t))   return 'psu';
   if (/\b(motherboard|mobo|b\d{3}|z\d{3}|x\d{3}|am[45]|lga\d{3,4})\b/.test(t)) return 'mobo';
   if (/\b(headphone|headphones|headset|earbuds|earphones|airpods|speaker|soundbar|subwoofer|microphone|condenser mic|audio interface|dac\b|amplifier|\bamp\b|projector|action cam|gopro|dashcam)\b/.test(t)) return 'audio';
@@ -605,12 +608,13 @@ function renderMarkdown(raw) {
 const SEARCH_QUERIES = [
   'gaming+pc+prebuilt',
   'graphics+card',
+  'laptop+computer',
   'gaming+monitor',
   'nvme+ssd',
+  'notebook+laptop',
   'mechanical+keyboard',
   'wifi+router',
   'wireless+headphones+earbuds',
-  'gaming+laptop',
   'smart+tv',
   'smartwatch+fitness+tracker',
   'gaming+mouse',
