@@ -173,4 +173,4 @@ pc-deals/
 
 ---
 
-*Built with ❤️ by Dad*
+*Built with ❤️ by Sentinel AI Systems for Tyler Williams*
