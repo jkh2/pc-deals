@@ -418,7 +418,7 @@
   LIVE DATA &mdash; <a href="https://slickdeals.net" target="_blank" rel="noopener noreferrer">Slickdeals.net</a>
   &nbsp;//&nbsp; AI POWERED BY <a href="https://puter.com" target="_blank" rel="noopener noreferrer">PUTER.JS</a>
   &nbsp;//&nbsp; REAL PRICES &nbsp;//&nbsp; REAL LINKS
-  <br><span style="color:var(--muted);font-size:10px;">BUILT BY TYLER D. WILLIAMS IN COLLABORATION WITH SENTINEL AI SYSTEMS &nbsp;•&nbsp; FORK IT ON GITHUB</span>
+  <br><span style="color:var(--muted);font-size:10px;">BUILT WITH ❤️ BY DAD &nbsp;•&nbsp; FORK IT ON GITHUB</span>
 </footer>
 </div>
 
@@ -517,32 +517,76 @@ const storeLabel = {
 // ── CATEGORY DETECTION ──
 function detectCategory(title) {
   const t = title.toLowerCase();
+
+  // Movies / video games that slip through the tech filter
+  if (/\b(steelbook|blu-ray|4k ultra hd\)|\(switch|switch 2\)|nintendo switch sports|bravely default)\b/.test(t)) return 'other';
+
   if (/\b(vr headset|oculus|quest \d|meta quest|vision pro)\b/.test(t))           return 'gadgets';
-  // Smart TV / TV BEFORE monitor — qled/oled/4k would otherwise be caught by monitor
-  if (/\b(smart tv|oled tv|qled tv|led tv|4k tv|google tv|roku tv|fire tv|mini-led tv|neo qled|smart television)\b/.test(t)) return 'audio';
-  if (/\b(fire stick|roku|apple tv|chromecast|streaming stick|android tv)\b/.test(t)) return 'smarthome';
+
+  // Handheld gaming PCs — carry Ryzen/Intel names but aren't CPUs/prebuilts
+  if (/\b(legion go|steam deck|rog ally|msi claw|ayaneo|gpd win|gpd pocket|onexplayer|handheld gaming|gaming handheld|retroid|miyoo|anbernic|powkiddy)\b/.test(t)) return 'gadgets';
+
+  // Controllers that list "smart tv" as a compatibility note — catch before the TV check
+  if (/\b(controller|gamepad|keychain controller)\b/.test(t)) return 'peripheral';
+
+  // TVs BEFORE monitor — qled/oled/4k would otherwise be caught by monitor
+  if (/\b(smart tv|oled tv|qled tv|led tv|4k tv|google tv|roku tv|fire tv|mini-led tv|neo qled|smart television|tizen tv)\b/.test(t)) return 'audio';
+  if (/\btv\b/.test(t) && /\b(\d{2}"|\d{2} inch|smart|oled|qled|uhd|4k|crystal|hisense|sansui|insignia)\b/.test(t)) return 'audio';
+
+  if (/\b(fire stick|streaming stick|chromecast|android tv box)\b/.test(t)) return 'smarthome';
   if (/\b(webcam|capture card|stream deck)\b/.test(t))                             return 'audio';
+
+  // PC cases BEFORE cooling — a case bundled with a CPU cooler is still a case
+  if (/\b(mid-tower case|mid tower case|micro-atx case|atx case|itx case|pc case|computer case|tempered glass panel)\b/.test(t)) return 'psu';
+
   if (/\b(cpu cooler|pc cooler|cpu fan|aio cooler|liquid cooler|water cooler|air cooler|heatsink|liquid cool|water cool|thermal paste|noctua|be quiet|arctic freezer|deepcool|scythe)\b/.test(t)) return 'cooling';
+
   // Mobo — explicit word, known product lines, or "MB" token inside a bundle (contains +)
   if (/\b(motherboard|mobo)\b/.test(t)
       || /\b(aorus elite|aorus pro|aorus master|prime b\d|tuf gaming b\d|rog strix b\d|rog maximus|pro b\d|msi pro b|msi mag b)\b/.test(t)
       || (/\bmb\b/.test(t) && t.includes('+'))) return 'mobo';
-  // Prebuilt BEFORE gpu — a prebuilt with RTX is still a prebuilt
-  if (/\b(prebuilt|pre-built|pre built|desktop pc|gaming pc|gaming desktop|mini pc|nuc|cyberpower|ibuypower|skytech|alienware aurora|omen desktop|legion tower)\b/.test(t)) return 'prebuilt';
-  // Laptop BEFORE gpu/cpu/ram — a gaming laptop is still a laptop
-  if (/\b(laptop|notebook|chromebook|macbook|ultrabook|thinkpad|ideapad|zenbook|vivobook|gaming laptops|helios|predator laptop|katana|raider \d|zephyrus|strix scar|rog flow|rog strix g|swift x|nitro \d|aspire \d|inspiron \d|pavilion \d|envy \d|spectre x|yoga \d|flex \d)\b/.test(t)) return 'laptop';
+
+  // Prebuilt BEFORE gpu/cpu/ram — a desktop/tower with RTX is still a prebuilt
+  if (/\b(prebuilt|pre-built|pre built|desktop|gaming pc|gaming desktop|mini pc|nuc|cyberpower|ibuypower|skytech|alienware aurora|omen desktop|legion tower|legion \di tower|\di tower|xps \d{4}|nitro \d{2} gaming)\b/.test(t)) return 'prebuilt';
+
+  // Laptop BEFORE gpu/cpu/ram — but laptop accessories (sleeve/stand/mount/bag) are NOT laptops
+  if (/\b(laptop|notebook|chromebook|macbook|ultrabook|thinkpad|ideapad|zenbook|vivobook|gaming laptops|helios|predator laptop|katana|raider \d|zephyrus|strix scar|rog flow|rog strix g|swift \d|nitro v|inspiron \d|pavilion \d|envy \d|spectre x|yoga \d|flex \d|legion \d|legion pro)\b/.test(t)) {
+    if (/\b(sleeve|stand|mount|riser|bag|tray|cooling pad|backpack|skin|decal)\b/.test(t)) return 'other';
+    return 'laptop';
+  }
+
   if (/\b(rtx|rx \d|arc |radeon|geforce|gpu|graphics card|video card)\b/.test(t)) return 'gpu';
   if (/\b(ryzen|intel core|i[3579]-\d|cpu|processor|xeon)\b/.test(t))             return 'cpu';
   if (/\b(ddr[3-5]|\bram\b|dimm|sodimm)\b/.test(t))                               return 'ram';
-  if (/\b(ssd|nvme|hdd|hard drive|m\.2|\bstorage\b|flash drive|thumb drive|usb drive|sd card|microsd)\b/.test(t)) return 'ssd';
-  if (/\b(monitor|display|1080p|1440p|2160p|\b4k\b|\b8k\b|144hz|165hz|240hz|360hz|oled|qled|ultrawide)\b/.test(t)) return 'monitor';
-  if (/\b(psu|power supply|\bcase\b|chassis|atx case|itx case|matx|mid tower|full tower)\b/.test(t))   return 'psu';
-  if (/\b(headphone|headphones|headset|earbuds|earphones|airpods|speaker|soundbar|subwoofer|microphone|condenser mic|audio interface|dac\b|amplifier|projector|action cam|action camera|gopro|dashcam|dash cam|camcorder|mirrorless camera|dslr)\b/.test(t)) return 'audio';
-  if (/\b(router|wi-fi|wifi|mesh network|mesh wifi|mesh system|mesh router|orbi|eero|deco|access point|modem|ethernet|network switch|powerline|range extender)\b/.test(t)) return 'networking';
-  if (/\b(smartphone|iphone|pixel \d|android phone|tablet|ipad|drawing tablet|wacom|smartwatch|apple watch|galaxy watch|fitness tracker|wearable)\b/.test(t) || /galaxy (s|z|note|a|tab)/.test(t)) return 'mobile';
-  if (/\b(smart plug|smart bulb|smart switch|smart home|alexa|echo dot|echo show|google home|ring doorbell|ring video|video doorbell|ring camera|smart lock|smart thermostat|nest)\b/.test(t)) return 'smarthome';
-  if (/\b(keyboard|mouse\b|mousepad|mouse pad|trackpad|trackball|controller|gamepad|joystick|racing wheel|flight stick)\b/.test(t)) return 'peripheral';
-  if (/\b(raspberry pi|arduino|fpga|dev board|3d printer|filament|resin printer|oscilloscope|multimeter|soldering|power bank|wireless charger|gan charger|usb hub|docking station|kvm|egpu|external gpu|scanner|label maker|e-reader|kindle|robot|robotic|stem kit|electronics kit)\b/.test(t)) return 'gadgets';
+
+  // NAS BEFORE ssd — a NAS is a device, not a bare drive
+  if (/\b(nas\b|nasync|network storage|synology|qnap)\b/.test(t)) return 'gadgets';
+  if (/\b(ssd|nvme|hdd|hard drive|m\.2|flash drive|thumb drive|usb drive|sd card|microsd|memory card|storage expansion)\b/.test(t)) return 'ssd';
+
+  // Monitor — exclude TVs, tablets, laptops, and stands/mounts/arms
+  if (/\b(monitor|ultrawide|1080p|1440p|2160p|144hz|165hz|180hz|200hz|240hz|300hz|360hz)\b/.test(t) && !/\b(tv|ipad|tablet|laptop|stand|mount|arm|riser|desk)\b/.test(t)) return 'monitor';
+
+  if (/\b(psu|power supply)\b/.test(t)) return 'psu';
+
+  // Stylus / pencil accessories are not tablets
+  if (/\b(stylus|pen for ipad|apple pencil)\b/.test(t)) return 'other';
+  // Tablets BEFORE networking so "iPad Wi-Fi" doesn't land in networking
+  if (/\b(ipad|galaxy tab|android tablet|idea tab|fire tablet|tab a\d|tab s\d)\b/.test(t)) return 'mobile';
+
+  if (/\b(headphone|headphones|headset|earbuds|earphones|airpods|soundbar|subwoofer|microphone|condenser mic|audio interface|amplifier|projector|action cam|action camera|gopro|dashcam|dash cam|camcorder|mirrorless camera|dslr|pixel buds|beats)\b/.test(t)) return 'audio';
+
+  // Networking — require real networking terms (NOT bare "wifi", which tablets carry)
+  if (/\b(router|mesh wifi|mesh system|wifi 6|wifi 7|wi-fi 6|wi-fi 7|orbi|eero|deco|access point|modem|network switch|powerline|range extender|travel router)\b/.test(t)) return 'networking';
+
+  if (/\b(smartphone|iphone|pixel \d|android phone)\b/.test(t) || /galaxy (s|z|note|a)\d/.test(t)) return 'mobile';
+  if (/\b(smartwatch|apple watch|galaxy watch|fitness tracker|wearable)\b/.test(t)) return 'mobile';
+
+  if (/\b(smart plug|smart bulb|smart switch|smart home|alexa|echo dot|echo show|google home|google nest|ring doorbell|ring video|video doorbell|ring camera|smart lock|smart thermostat|nest|roku|apple tv|kasa)\b/.test(t)) return 'smarthome';
+
+  if (/\b(keyboards?|mice|mouse|mousepad|mouse pad|trackpad|trackball|joystick|racing wheel|flight stick|shifter)\b/.test(t)) return 'peripheral';
+
+  if (/\b(raspberry pi|arduino|fpga|dev board|3d printer|filament|resin printer|oscilloscope|multimeter|soldering|power bank|wireless charger|gan charger|usb hub|docking station|kvm|egpu|scanner|label maker|e-reader|kindle|robot|robotic|robot vacuum|stem kit|electronics kit|charger|charging cable|power strip)\b/.test(t)) return 'gadgets';
+
   return 'other';
 }
 
@@ -640,6 +684,10 @@ const _SPECS  = /rtx \d|rx \d{3,4}|arc \w+|ddr[3-5]\b|lpddr[45]|nvme\b|m\.2\b|pc
 const _CATS   = /graphics card|video card|\bgpu\b|\bcpu\b|solid state drive|hard drive|flash drive|thumb drive|usb drive|\bsd card\b|microsd\b|external ssd|external hdd|motherboard|\bmobo\b|power supply|gaming pc|desktop pc|mini pc|prebuilt\b|gaming desktop|gaming laptop|\blaptop\b|\bnotebook\b|\bchromebook\b|\bultrabook\b|gaming monitor|curved monitor|ultrawide\b|mechanical keyboard|gaming keyboard|wireless keyboard|gaming mouse|wireless mouse|ergonomic mouse|gaming headset|wireless headset|noise cancelling|noise-cancelling|\btrue wireless\b|\bearbuds\b|\bwebcam\b|studio mic|condenser mic|\busb mic\b|cpu cooler|pc cooler|liquid cooler|aio cooler|water cooling|air cooler|\bheatsink\b|thermal paste|pc case|tower case|mid tower|full tower|mini itx case|desktop case|gaming case|smart tv|oled tv|qled tv|\bwifi router\b|mesh wifi|mesh network|wireless router|\baccess point\b|network switch|ethernet switch|smart plug|smart bulb|smart lock|smart home hub|video doorbell|streaming stick|action camera|\bdash cam\b|\bdashcam\b|vr headset|mixed reality|\bsmartwatch\b|fitness tracker|drawing tablet|graphics tablet|3d printer|resin printer|\bdev board\b|single board computer|power bank|portable charger|\busb hub\b|docking station|kvm switch|\bprojector\b|\be-reader\b|smart speaker|bluetooth speaker|surge protector|ups battery|hdmi cable|displayport cable|\bnas\b|network storage|stream deck|capture card|ethernet cable|air duster|electric duster|compressed air|gaming console|video game\b|pc game\b/i;
 const PC_KEYWORDS = { test: (s) => _BRANDS.test(s) || _SPECS.test(s) || _CATS.test(s) };
 
+// Obvious non-tech items that occasionally slip through on description matches.
+// Checked against the TITLE only — if it matches, the deal is rejected.
+const _REJECT = /\b(facial|beauty|makeup|cosmetic|skincare|moisturizer|serum|shampoo|perfume|cologne|vitamin|supplement|protein powder|snack|coffee|tumbler|water bottle|paddle board|luggage|pajamas?|sneakers?|jeans|towels?|blender|air fryer|mixer|cookware|skillet|grill|mattress|pillows?|backpacks?|wallets?|sunglasses|watch band|phone case|screen protector)\b/i;
+
 async function fetchDeals() {
   const seen  = new Set();
   const fresh = [];
@@ -655,6 +703,8 @@ async function fetchDeals() {
         seen.add(id);
 
         const rawTitle = decodeEntities(item.title || '');
+        // Reject obvious non-tech items even if the description has tech-sounding words
+        if (_REJECT.test(rawTitle)) continue;
         const combined = rawTitle + ' ' + (item.description || '') + ' ' + (item.content || '');
         if (!PC_KEYWORDS.test(combined)) continue;
 
