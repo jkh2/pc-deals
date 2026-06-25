@@ -1,6 +1,6 @@
 # 💻 PC Deal Tracker // NERD MODE
 
-A live PC parts deal tracker powered by [Slickdeals.net](https://slickdeals.net) and AI — real prices, real links, real product images, and an integrated AI assistant that searches the web live, explains deals, advises on builds, and summarizes the feed. No fake data. No hallucinations.
+A live PC parts and tech deal tracker powered by [Slickdeals.net](https://slickdeals.net) and AI — real prices, real links, real product images, and an integrated AI assistant that searches the web live, explains deals, advises on builds, and summarizes the feed. No fake data. No hallucinations. No pistachios.
 
 ![Nerd Mode](https://img.shields.io/badge/mode-NERD-00ff41?style=for-the-badge&labelColor=020c02)
 ![Live Data](https://img.shields.io/badge/data-LIVE-00ff41?style=for-the-badge&labelColor=020c02)
@@ -17,19 +17,25 @@ A live PC parts deal tracker powered by [Slickdeals.net](https://slickdeals.net)
 - **Product thumbnails** — actual images pulled from each deal listing
 - **Price extraction** — dollar amounts pulled from deal titles and displayed prominently
 - **Store detection** — automatically identifies Amazon, Best Buy, Newegg, Walmart, Microcenter, Costco, Dell, HP, Alienware, and more
-- **Filter by category** — GPU, CPU, RAM, SSD, Prebuilt, Monitor, Laptop, Cooling, PSU/Case, Motherboard, Peripherals
+- **Tech relevance filter** — only PC and tech deals make it through; no food, clothing, or random products
+- **17 category filters** — GPU, CPU, RAM, SSD, Prebuilt, Monitor, Laptop, Cooling, PSU/Case, Motherboard, Peripherals, Audio & Video, Networking, Phones & Tablets, Smart Home, Gadgets
+- **Category chip on every card** — shows which category each deal landed in at a glance
 - **Sort by** Newest or Lowest Price
 - **Search bar** — hunt for specific parts instantly
-- **Auto-refreshes** every 5 minutes
+- **Auto-refreshes** every 5 minutes — stays current without reloading
 
 ### AI Features (powered by Puter.js — free, no API key)
-- **🤖 AI Digest** — auto-generated feed summary on every load: what's hot, which categories are active, standout deals
+- **🤖 AI Digest** — auto-generated feed summary on first load: what's hot, which categories are active, standout deals
 - **🤖 Analyze button** — per-card AI analysis: plain English explanation of the product, price assessment, gotcha flags (rebates, open box), and a BUY / WAIT / SKIP verdict
-- **🤖 Build Advisor + Live Web Search** — type your goal ("best GPU under $400" or "1440p gaming PC under $900") and the AI searches Newegg, Best Buy, Amazon, Microcenter, and price trackers in real time — then combines what it finds with our live deal feed to give you a specific, sourced recommendation with real prices and store links
+- **🤖 Build Advisor + Live Web Search** — type your goal and the AI searches Newegg, Best Buy, Amazon, Microcenter, and price trackers in real time, then combines live web results with the current deal feed for specific, sourced recommendations
 
-### Other
-- **Works locally AND on GitHub Pages** — no server required
-- **Skippable CRT boot sequence** — because nerds deserve nice things 🤓
+### UX Polish
+- **Skippable CRT boot sequence** — click anywhere or press any key to skip
+- **Night-vision nerd mascot** — appears on boot screen and in all AI loading states with a speech bubble
+- **Cycling status messages** — the Build Advisor shows what it's searching in real time
+- **CLEAR / ASK ANOTHER button** — reset the Build Advisor result without closing the panel
+- **Refresh fail toast** — if the 5-minute background refresh fails, existing cards stay visible and a small notification appears
+- **Mobile-friendly** — filter bar scrolls horizontally with a fade hint; nerd image hides on small screens to preserve text space
 
 ---
 
@@ -63,7 +69,7 @@ The first time you click an AI feature (Analyze, Build Advisor, or the auto-summ
 ## 🤖 How the AI Works
 
 ### AI Digest
-Runs automatically after the deal feed loads. Reads the current deals and writes a 2-3 sentence plain-English summary: what's hot right now, which categories are active, any standout items worth clicking.
+Runs automatically after the deal feed loads on first visit (not on every refresh). Reads the current deals and writes a 2-3 sentence plain-English summary: what's hot, which categories are active, any standout items worth clicking.
 
 ### Deal Analyzer (per card)
 Every deal card has an **🤖 ANALYZE** button. Click it and the AI:
@@ -73,7 +79,7 @@ Every deal card has an **🤖 ANALYZE** button. Click it and the AI:
 - Gives a clear verdict: **BUY**, **WAIT**, or **SKIP**
 
 ### Build Advisor + Web Search
-The **🤖 BUILD ADVISOR** panel (purple button in the sort bar) takes a natural language goal and searches the internet live. While it works you'll see it cycle through status messages in real time:
+The **🤖 BUILD ADVISOR** panel (purple button in the sort bar) takes a natural language goal and searches the internet live. While it works you'll see the nerd mascot cycle through status messages in real time:
 
 ```
 > Searching Newegg for current deals...
@@ -82,7 +88,7 @@ The **🤖 BUILD ADVISOR** panel (purple button in the sort bar) takes a natural
 > Cross-referencing price trackers...
 ```
 
-It combines what it finds on the web with our live Slickdeals feed, then returns specific product recommendations with real prices, real store links, and honest caveats. Typical response time: 8–20 seconds depending on query complexity.
+It combines what it finds on the web with the live Slickdeals feed, then returns specific product recommendations with real prices, real store links, and honest caveats. Typical response time: 8–20 seconds. After the result appears, a **CLEAR / ASK ANOTHER** button lets you reset and ask a new question.
 
 **Example queries that work well:**
 - `best GPU under $400 right now`
@@ -90,6 +96,8 @@ It combines what it finds on the web with our live Slickdeals feed, then returns
 - `cheapest RTX 5060 deal today`
 - `is the RTX 4070 Super a good buy right now`
 - `SSD deals at Newegg or Microcenter`
+- `best wifi router under $150`
+- `good drone for under $300`
 
 ---
 
@@ -99,31 +107,27 @@ This is a **single-file HTML app** — no frameworks, no build tools, no backend
 
 ```
 index.html
-├── CSS              — Terminal/CRT aesthetic, scanlines, green phosphor glow
-├── Boot screen      — Skippable fake BIOS sequence on load
+├── CSS              — Terminal/CRT aesthetic, scanlines, green phosphor glow, animations
+├── Boot screen      — Skippable fake BIOS sequence with night-vision nerd mascot
 ├── Fetch logic      — Slickdeals RSS → rss2json.com → parsed JSON with CORS headers
+├── Tech filter      — Drops anything that doesn't match a PC/tech keyword list
 ├── Store detect     — Scans post title + description to identify retailer
-├── Category         — Regex-based component classification
-├── Price extract    — Pulls $ amounts from deal titles
-├── AI Digest        — Puter.js summarizes the feed on load
+├── Category detect  — 17-bucket regex classification with priority ordering
+├── Price extract    — Pulls real $ amounts from deal titles, filters out coupon amounts
+├── AI Digest        — Puter.js summarizes the feed on first load only
 ├── AI Analyzer      — Puter.js explains individual deals on demand
 ├── Build Advisor    — Puter.js + live web_search tool finds current deals across the web
-└── Render           — Filter, sort, search, display with thumbnails
+└── Render           — Filter, sort, search, display with thumbnails and category chips
 ```
 
 ### Why Slickdeals?
-
-Reddit's API (`r/buildapcsales`) was the original plan, but Reddit locked it down in 2024-2025 — all requests return 403 regardless of proxies or headers. Slickdeals covers every major PC retailer (Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, Alienware, and more), posts real prices, and provides a public RSS feed.
+Reddit's API (`r/buildapcsales`) was the original plan, but Reddit locked it down — all requests return 403 regardless of proxies or headers. Slickdeals covers every major PC retailer (Amazon, Best Buy, Newegg, Walmart, Microcenter, Dell, Alienware, and more), posts real prices, and provides a public RSS feed.
 
 ### Why rss2json.com?
-
 Slickdeals provides RSS but not a JSON API with CORS headers. [rss2json.com](https://api.rss2json.com) converts any public RSS feed to JSON served with proper CORS headers — so the app works from any origin, local file or hosted domain, with no backend required.
 
 ### Why Puter.js?
-
-[Puter.js](https://js.puter.com/v2/) provides free access to AI models (GPT, Claude, Gemini, and others) directly from frontend code with no API key and no backend. It uses a "user-pays" model where each user's free Puter account covers their own AI usage. For personal use this is effectively unlimited and free.
-
-The Build Advisor uses Puter's `web_search` tool integration, which lets the AI search the open web in real time during a query — the same capability that powers the live price lookups at Newegg, Best Buy, and Amazon.
+[Puter.js](https://js.puter.com/v2/) provides free access to AI models directly from frontend code with no API key and no backend. Each user's free Puter account covers their own AI usage. The Build Advisor uses Puter's `web_search` tool integration, which lets the AI search the open web in real time — the same capability that powers the live price lookups at Newegg, Best Buy, and Amazon.
 
 ---
 
@@ -135,8 +139,10 @@ Everything lives in one file — `index.html`.
 |---|---|
 | Color scheme | `:root` CSS variables at the top |
 | Boot messages | `bootLines` array in the `<script>` |
-| Search queries (feed) | `SEARCH_QUERIES` array |
-| Category filters | `detectCategory()` function |
+| Feed search queries | `SEARCH_QUERIES` array |
+| Tech relevance filter | `PC_KEYWORDS` regex |
+| Category detection | `detectCategory()` function |
+| Category labels on cards | `catLabel` object |
 | Store detection | `detectStore()` function |
 | Feed refresh interval | `setInterval(fetchDeals, 5 * 60 * 1000)` |
 | AI model | `model: 'gpt-5.4-nano'` in each `puter.ai.chat()` call |
@@ -150,7 +156,7 @@ Everything lives in one file — `index.html`.
 pc-deals/
 ├── README.md
 ├── index.html       ← main app
-└── test.html        ← Puter.js web search test page (can delete after testing)
+└── nerdy.png        ← night-vision nerd mascot
 ```
 
 ---
@@ -162,6 +168,7 @@ pc-deals/
 - [rss2json.com](https://api.rss2json.com) — RSS to JSON with CORS headers
 - [Puter.js](https://js.puter.com/v2/) — free keyless AI with live web search (GPT-5.4-nano)
 - [Orbitron](https://fonts.google.com/specimen/Orbitron) + [Share Tech Mono](https://fonts.google.com/specimen/Share+Tech+Mono) — Google Fonts
+- Night-vision nerd mascot — STATUS: AWKWARD. MISSION: BE IMPRESSIVE.
 - Terminal green CRT aesthetic — because nerds deserve nice things
 
 ---
