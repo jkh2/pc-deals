@@ -616,15 +616,18 @@ function timeAgo(dateStr) {
 
 // ── FETCH ──
 const SEARCH_QUERIES = [
-  'gpu+rtx+radeon+graphics',
+  'gpu+rtx+radeon+graphics+card',
   'cpu+ryzen+intel+processor',
-  'ssd+nvme+ram+memory',
+  'ssd+nvme+ram+memory+ddr5',
   'gaming+pc+prebuilt+desktop',
-  'laptop+monitor+keyboard+mouse',
-  'newegg+microcenter+bestbuy+walmart',
+  'laptop+monitor+keyboard+mouse+headset',
+  'pc+computer+gaming+hardware+tech',
 ];
 const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const SD_BASE  = 'https://slickdeals.net/newsearch.php?mode=frontpage&searcharea=deals&rss=1&q=';
+
+// PC/Tech relevance filter — must match at least one keyword to be included
+const PC_KEYWORDS = /\b(gpu|cpu|rtx|radeon|geforce|nvidia|amd gpu|arc gpu|ssd|nvme|hdd|hard drive|flash drive|thumb drive|usb drive|sd card|microsd|ram|ddr[3-5]|memory|dimm|sodimm|motherboard|mobo|psu|power supply|ups|surge protector|gaming|prebuilt|desktop pc|mini pc|nuc|laptop|notebook|chromebook|macbook|ultrabook|thinkpad|ideapad|xps|zenbook|monitor|display|oled|qled|1080p|1440p|2160p|4k|8k|144hz|165hz|240hz|360hz|keyboard|mechanical keyboard|mousepad|mouse pad|trackpad|trackball|headset|headphones|headphone|earbuds|earphones|airpods|webcam|capture card|stream deck|microphone|condenser mic|soundbar|subwoofer|audio interface|controller|gamepad|joystick|racing wheel|vr headset|oculus|quest|router|wi-fi|wifi|mesh network|ethernet|access point|modem|raspberry pi|arduino|fpga|dev board|single board|tablet|ipad|drawing tablet|wacom|smartphone|iphone|pixel \d|galaxy s|galaxy z|smartwatch|apple watch|galaxy watch|fitness tracker|processor|graphics card|video card|workstation|server|nas|chassis|atx|itx|matx|cooler|cooling|aio|liquid cool|water cool|heatsink|thermal paste|hdmi|displayport|usb-c|thunderbolt|usb hub|kvm|power bank|wireless charger|gan charger|printer|scanner|projector|smart tv|fire tv|roku|apple tv|chromecast|drone|action cam|gopro|dashcam|smart plug|smart bulb|echo dot|docking station|3d printer|filament|newegg|microcenter|alienware|lenovo|asus|acer|msi|gigabyte|corsair|logitech|razer|steelseries|hyperx|kingston|seagate|western digital|crucial|sabrent|noctua|fractal|lian li|nzxt|phanteks|pc\b|computer\b|mouse\b|speaker\b|case\b|cable\b|tv\b|amp\b|dac\b)\b/i;
 
 async function fetchDeals() {
   try {
@@ -643,6 +646,10 @@ async function fetchDeals() {
         if (seen.has(id)) continue;
         seen.add(id);
         const rawTitle = decodeEntities(item.title || '');
+
+        // Drop anything that doesn't look like a PC/tech deal
+        if (!PC_KEYWORDS.test(rawTitle) && !PC_KEYWORDS.test(item.description || '')) continue;
+
         const price = extractPrice(rawTitle, item.description);
         fresh.push({
           id, title: rawTitle, link: item.link,
